@@ -1,0 +1,26 @@
+{
+  "name": "first-safety",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "First Safety - dog-bite first aid and rabies prevention for India. Offline PWA, no backend, no tracking.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "icons": "python scripts/make_icons.py"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.2",
+    "vite-plugin-pwa": "^1.0.2"
+  }
+}

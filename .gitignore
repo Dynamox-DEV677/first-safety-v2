@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+dev-dist/
+.vercel/
+*.log
+.DS_Store
+
+# QA artefacts - renders and screenshots, regenerated on demand
+qa-shots/

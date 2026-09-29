@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "first-safety-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/sathy/animal hackthon/first-safety", "run", "preview"],
+      "port": 4173
+    }
+  ]
+}

@@ -12,7 +12,7 @@ export default defineConfig({
       manifest: {
         name: 'First Safety',
         short_name: 'First Safety',
-        description: 'Dog-bite first aid and rabies prevention. The first 15 minutes matter most.',
+        description: 'Animal-bite first aid and rabies prevention. The first 15 minutes matter most.',
         lang: 'en-IN',
         start_url: '/',
         scope: '/',
@@ -28,7 +28,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,woff2}'],
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,

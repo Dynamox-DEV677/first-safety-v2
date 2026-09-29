@@ -3,46 +3,81 @@
    One red, used only on the emergency path (the bitten button, the wash timer,
    the hospital instruction). It is the same red in both themes. */
 :root {
-  --bg: #ffffff;
-  --ink: #111111;
-  --ink-2: #3a3a3a;
-  --muted: #6b6b6b;
-  --line: #d9d9d9;
-  --press: #f2f2f2;
+  --paper: #FFFFFF;
+  --ground: #EEF1F5;
+  --sunk: #E2E6EC;
+  --ink: #080A0E;
+  --ink-2: #464C56;
+  --ink-3: #79818D;
+  --line: #D6DBE2;
+  --red: #C8102E;
+  --red-deep: #9A0B22;
+  --red-soft: #FCE9EC;
+  --go: #0B6B3A;
+  --shadow: 0 1px 2px rgba(8, 10, 14, 0.06), 0 10px 26px rgba(8, 10, 14, 0.10);
+  /* Older rules still read these names; they resolve to the tokens above. */
+  --bg: var(--paper);
+  --muted: var(--ink-3);
+  --press: var(--sunk);
   --ink-press: #000000;
-  --red: #d3202f;
-  --red-press: #b51a27;
-  --tap: 56px;
+  --red-press: var(--red-deep);
+  --font: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --tap: 64px;
   --maxw: 640px;
   --pad: 20px;
-  --nav-h: 56px;
+  --nav-h: 64px;
   font-size: 17px;
   color-scheme: light;
 }
-:root[data-theme="dark"] {
-  --bg: #111111;
-  --ink: #f2f2f2;
-  --ink-2: #cfcfcf;
-  --muted: #9a9a9a;
-  --line: #333333;
-  --press: #222222;
-  --ink-press: #ffffff;
-  color-scheme: dark;
-}
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --bg: #111111;
-    --ink: #f2f2f2;
-    --ink-2: #cfcfcf;
-    --muted: #9a9a9a;
-    --line: #333333;
-    --press: #222222;
-    --ink-press: #ffffff;
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
+    --paper: #14171C; --ground: #0C0E12; --sunk: #1B1F26;
+    --ink: #F3F5F8; --ink-2: #A8B0BB; --ink-3: #737B87;
+    --line: #252A32;
+    --red: #FF5065; --red-deep: #FF7484; --red-soft: #2C1216;
+    --go: #48C286;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.4);
+    --ink-press: #FFFFFF;
   }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #14171C; --ground: #0C0E12; --sunk: #1B1F26;
+  --ink: #F3F5F8; --ink-2: #A8B0BB; --ink-3: #737B87;
+  --line: #252A32;
+  --red: #FF5065; --red-deep: #FF7484; --red-soft: #2C1216;
+  --go: #48C286;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.4);
+  --ink-press: #FFFFFF;
 }
 @media (min-width: 420px) {
   :root { font-size: 18px; }
+}
+
+/* Self-hosted so the app has no external request, online or off. Archivo is one variable file
+   covering 500-800; Plex Mono is the two static weights the app actually uses. */
+@font-face {
+  font-family: "Archivo";
+  src: url("/fonts/Archivo-var.woff2") format("woff2");
+  font-weight: 500 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 * { box-sizing: border-box; }
@@ -50,7 +85,7 @@ html, body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+  font-family: var(--font);
   -webkit-text-size-adjust: 100%;
 }
 body { line-height: 1.45; min-height: 100dvh; }
@@ -76,13 +111,19 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .page-main { flex: 1; }
 
 /* ---- header ---- */
-.hdr { border-bottom: 1px solid var(--line); }
-.hdr-row { display: flex; align-items: center; justify-content: space-between; min-height: 56px; }
-.wordmark { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
-.hdr-link { font-size: 0.95rem; color: var(--muted); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
-.minibar { display: block; background: var(--red); color: #fff; text-decoration: none; }
-.minibar-in { display: flex; justify-content: space-between; align-items: center; min-height: 52px; font-weight: 700; }
-.minibar-time { font-variant-numeric: tabular-nums; font-size: 1.25rem; }
+.hdr {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.hdr-row { display: flex; align-items: center; justify-content: space-between; min-height: 64px; }
+.wordmark { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; text-decoration: none; min-height: 64px; display: inline-flex; align-items: center; }
+.hdr-link { font-size: 0.95rem; color: var(--muted); text-decoration: none; min-height: 64px; display: inline-flex; align-items: center; }
+.minibar { display: block; background: var(--red); color: var(--paper); text-decoration: none; }
+.minibar-in { display: flex; justify-content: space-between; align-items: center; min-height: 64px; font-weight: 700; }
+.minibar-time { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1.25rem; }
 
 /* ---- bottom nav ---- */
 .bnav {
@@ -113,8 +154,9 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 
 /* ---- type ---- */
 .eyebrow {
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
   font-weight: 600;
@@ -155,7 +197,7 @@ h1.title {
 .btn:active { background: var(--press); }
 .btn-solid { background: var(--ink); color: var(--bg); }
 .btn-solid:active { background: var(--ink-press); }
-.btn-red { background: var(--red); border-color: var(--red); color: #fff; }
+.btn-red { background: var(--red); border-color: var(--red); color: var(--paper); }
 .btn-red:active { background: var(--red-press); border-color: var(--red-press); }
 .btn-hero {
   min-height: 42vh;
@@ -167,9 +209,9 @@ h1.title {
   gap: 14px;
 }
 .btn-hero small { font-size: 1.05rem; font-weight: 500; letter-spacing: 0; opacity: 0.92; }
-.btn-ghost { border-color: transparent; color: var(--muted); font-weight: 600; min-height: 48px; font-size: 1rem; }
+.btn-ghost { border-color: transparent; color: var(--muted); font-weight: 600; min-height: 64px; font-size: 1rem; }
 .btn-ghost:active { background: transparent; color: var(--ink); }
-.btn-sm { min-height: 48px; font-size: 1rem; padding: 8px 14px; }
+.btn-sm { min-height: 64px; font-size: 1rem; padding: 8px 14px; }
 .btn[disabled] { opacity: 0.35; cursor: default; }
 .btn-col { flex-direction: column; gap: 4px; }
 .btn-col .sub { font-size: 0.95rem; font-weight: 500; color: var(--muted); }
@@ -181,7 +223,7 @@ h1.title {
 .btn-row > .btn-ghost { flex: 0 1 auto; width: auto; min-width: 76px; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
 .seg { display: flex; gap: 8px; }
-.seg .btn { min-height: 48px; font-size: 1rem; padding: 8px 10px; }
+.seg .btn { min-height: 64px; font-size: 1rem; padding: 8px 10px; }
 
 .actions {
   position: sticky;
@@ -197,7 +239,7 @@ h1.title {
 label.lbl { display: block; font-size: 0.9rem; color: var(--muted); margin: 0 0 6px; }
 select.sel, input.inp, textarea.inp {
   width: 100%;
-  min-height: 56px;
+  min-height: 64px;
   font: inherit;
   font-size: 1.05rem;
   padding: 10px 12px;
@@ -227,9 +269,10 @@ select.sel, input.inp, textarea.inp {
 /* ---- timer ---- */
 .timer { text-align: center; padding: 8px 0 4px; margin: 0 0 24px; }
 .timer-digits {
-  font-size: clamp(4.6rem, 27vw, 7.5rem);
-  font-weight: 800;
-  letter-spacing: -0.045em;
+  font-family: var(--mono);
+  font-size: clamp(4.2rem, 24vw, 7rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   color: var(--red);
@@ -238,7 +281,7 @@ select.sel, input.inp, textarea.inp {
 .timer-label { font-size: 1rem; color: var(--muted); font-weight: 600; }
 .timer-track { height: 6px; background: var(--line); margin: 22px 0 10px; }
 .timer-fill { height: 100%; background: var(--red); transition: width 0.25s linear; }
-.timer-meta { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.timer-meta { font-family: var(--mono); display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .timer-done { font-size: 1.3rem; font-weight: 700; color: var(--red); margin: 14px 0 0; }
 .timer .btn { margin-top: 16px; }
 
@@ -331,9 +374,9 @@ select.sel, input.inp, textarea.inp {
 .face.back .txt { font-weight: 500; font-size: 1.12rem; }
 .face .hint { margin-top: 18px; font-size: 0.85rem; color: var(--muted); }
 .card-actions { display: flex; gap: 10px; margin: 0 0 16px; }
-.card-actions .btn { min-height: 56px; font-size: 1rem; }
+.card-actions .btn { min-height: 64px; font-size: 1rem; }
 .nav-row { display: flex; gap: 12px; }
-.nav-row .btn { min-height: 56px; }
+.nav-row .btn { min-height: 64px; }
 .prog { display: flex; gap: 4px; margin: 0 0 16px; }
 .prog span { flex: 1; height: 4px; background: var(--line); }
 .prog span.done { background: var(--ink); }
@@ -342,7 +385,7 @@ select.sel, input.inp, textarea.inp {
 .bm { padding: 18px 0; border-top: 1px solid var(--line); }
 .bm .q { font-style: italic; color: var(--ink-2); margin: 0 0 10px; }
 .bm .a { margin: 0 0 8px; font-weight: 500; }
-.bm .btn-ghost { justify-content: flex-start; padding-left: 0; min-height: 40px; }
+.bm .btn-ghost { justify-content: flex-start; padding-left: 0; min-height: 64px; }
 
 /* ---- quiz ---- */
 .opt {
@@ -350,7 +393,7 @@ select.sel, input.inp, textarea.inp {
   text-align: left;
   font-weight: 600;
   font-size: 1.05rem;
-  min-height: 56px;
+  min-height: 64px;
   padding: 12px 16px;
 }
 .opt.correct { background: var(--ink); color: var(--bg); border-color: var(--ink); }
@@ -393,7 +436,7 @@ details.faq:last-of-type { border-bottom: 1px solid var(--line); }
 details.faq summary {
   cursor: pointer;
   list-style: none;
-  min-height: 60px;
+  min-height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -423,11 +466,11 @@ details.faq .body { margin-top: 0; }
 
 /* ---- triage taps ---- */
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.grid2 .btn { min-height: 56px; font-size: 1rem; padding: 10px 12px; }
+.grid2 .btn { min-height: 64px; font-size: 1rem; padding: 10px 12px; }
 
 /* ---- timer banner ---- */
-.minibar-link { display: flex; flex: 1; justify-content: space-between; align-items: center; gap: 12px; color: inherit; text-decoration: none; min-height: 52px; }
-.minibar-x { color: #fff; font-weight: 700; font-size: 0.9rem; min-height: 44px; padding: 0 0 0 16px; text-decoration: underline; }
+.minibar-link { display: flex; flex: 1; justify-content: space-between; align-items: center; gap: 12px; color: inherit; text-decoration: none; min-height: 64px; }
+.minibar-x { color: var(--paper); font-weight: 700; font-size: 0.9rem; min-height: 64px; padding: 0 0 0 16px; text-decoration: underline; }
 
 /* ---- forms ---- */
 textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
@@ -437,18 +480,28 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 
 /* ---- doctor's report: always white, no chrome ---- */
 .report {
-  --bg: #ffffff;
-  --ink: #111111;
-  --ink-2: #3a3a3a;
-  --muted: #6b6b6b;
-  --line: #d9d9d9;
-  --press: #f2f2f2;
+  /* The aliases are re-declared here on purpose: var() resolves where it is declared, so the
+     root's --bg would otherwise carry the dark value in. */
+  --paper: #FFFFFF; --bg: #FFFFFF;
+  --ground: #EEF1F5;
+  --sunk: #E2E6EC; --press: #E2E6EC;
+  --ink: #080A0E;
+  --ink-2: #464C56;
+  --ink-3: #79818D; --muted: #79818D;
+  --line: #D6DBE2;
+  --red: #C8102E; --red-deep: #9A0B22; --red-press: #9A0B22;
   --ink-press: #000000;
   color-scheme: light;
-  background: #ffffff;
-  color: #111111;
+  background: #FFFFFF;
+  color: #080A0E;
   min-height: 100dvh;
+  font-family: var(--mono);
+  font-weight: 500;
 }
+/* Plex Mono ships at 500 and 600 only, so nothing in the report asks for a heavier weight and the
+   browser never has to fake one. Buttons keep the app face. */
+.report .btn { font-family: var(--font); }
+.report :is(b, strong, .rtitle, .rl, .rv.rbig, .rsec h2, .tel-num) { font-weight: 600; }
 .report-in { max-width: 680px; margin: 0 auto; padding: 16px var(--pad) 40px; }
 .report-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 12px; }
 .rtitle { font-size: 1.9rem; line-height: 1.05; letter-spacing: -0.025em; font-weight: 800; margin: 0; }
@@ -491,7 +544,7 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .prep li { padding: 8px 0; border-top: 1px solid var(--line); font-size: 1.05rem; line-height: 1.4; }
 .prep li:first-child { border-top: 0; }
 .prep .note { color: var(--ink-2); font-size: 0.95rem; margin: 10px 0 0; }
-.prep .btn { margin-top: 12px; min-height: 52px; font-size: 1rem; }
+.prep .btn { margin-top: 12px; min-height: 64px; font-size: 1rem; }
 .tel-inline { font-weight: 800; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 @keyframes prep-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -512,7 +565,7 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .nearby > .btn { margin-top: 4px; }
 .nearby-list { margin: 8px 0 12px; }
 .code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--mono);
   font-size: 1rem;
   letter-spacing: 0.02em;
   word-break: break-all;
@@ -562,7 +615,50 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
   word-break: break-all;
 }
 .modal-actions { display: flex; flex-direction: column; gap: 10px; }
-.modal-actions .btn { min-height: 60px; }
+.modal-actions .btn { min-height: 64px; }
+
+/* ---- entry screen: two buttons, nothing competing with them ---- */
+.entry { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 8px 0 16px; }
+.entry-brand {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin: 0;
+}
+.entry-q { font-size: 23px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; margin: 0 0 6px; }
+.entry-btn {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  min-height: 132px;
+  padding: 20px 22px;
+  border-radius: 8px;
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+.entry-btn > span:last-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.entry-btn b { font-size: 22px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.1; }
+.entry-btn > span:last-child > span { font-size: 15px; font-weight: 500; opacity: 0.85; }
+.entry-btn .ico { font-size: 34px; line-height: 1; flex: 0 0 auto; }
+.entry-btn.red { background: var(--red); color: var(--paper); }
+.entry-btn.red:active { background: var(--red-deep); }
+.entry-btn.grey { background: var(--ground); color: var(--ink); border: 1px solid var(--line); }
+.entry-btn.grey:active { background: var(--sunk); }
+.entry-note { font-size: 12.5px; color: var(--ink-3); margin: 6px 0 0; text-align: center; }
+
+/* ---- sourced notes and the verify gate ---- */
+.gate { margin: 4px 0 20px; }
+.srcd-list { list-style: none; margin: 0; padding: 0; }
+.srcd { padding: 12px 0; border-top: 1px solid var(--line); }
+.srcd:last-child { border-bottom: 1px solid var(--line); }
+.srcd-text { margin: 0 0 6px; font-size: 1.05rem; line-height: 1.4; }
+.srcd-cite { margin: 0; font-family: var(--mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.02em; color: var(--ink-3); }
+.srcd-cite a { color: inherit; }
+.gate-msg { margin: 12px 0 0; padding: 12px 14px; border: 1px dashed var(--ink-3); border-radius: 6px; font-size: 0.95rem; color: var(--ink-2); }
 
 /* Visible to screen readers only. The home screen's content is one huge button, so its heading
    has nowhere to sit visually - but a page with no heading at all is hostile to a screen reader. */

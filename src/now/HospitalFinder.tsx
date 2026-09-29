@@ -14,6 +14,7 @@ import SourceNote from '../components/SourceNote'
 import TelLink from '../components/TelLink'
 import CallContacts from '../components/CallContacts'
 import NearbyHospitals from './NearbyHospitals'
+import AnimalNotes, { CommonNotes } from '../components/Sourced'
 
 /** Numbers to call, where to go, and what to tell the doctor. */
 export default function HospitalFinder() {
@@ -86,10 +87,11 @@ export default function HospitalFinder() {
       <h2 className="h2">What to tell the doctor</h2>
       {known && (
         <p className="body">
-          <b>About the dog: </b>
+          <b>About the animal: </b>
           {triage.notes[known]}
         </p>
       )}
+      <AnimalNotes />
       <p className="body">{exposureCategories.intro}</p>
       {exposureCategories.items.map((c) => (
         <div className="cat" key={c.cat}>
@@ -100,6 +102,7 @@ export default function HospitalFinder() {
           </div>
         </div>
       ))}
+      <CommonNotes />
       <SourceNote ids={['WHO_TRS', 'WHO_FS', 'NCDC_2019', 'GOI_112']} />
 
       <div className="actions">

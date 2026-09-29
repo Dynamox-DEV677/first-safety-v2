@@ -1,0 +1,23 @@
+{
+  "id": "human",
+  "label": "Person",
+  "observable10Days": false,
+  "notes": [
+    {
+      "id": "human.who",
+      "text": "Human-to-human transmission through bites or saliva is theoretically possible but has never been confirmed.",
+      "source": "WHO — Rabies fact sheet",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "human.infection",
+      "text": "Human bites carry a high risk of bacterial infection and should be seen by a doctor the same day.",
+      "source": "WHO — Rabies fact sheet",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
+      "accessed": "2026-09-29",
+      "verified": false
+    }
+  ]
+}

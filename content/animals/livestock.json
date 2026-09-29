@@ -1,0 +1,23 @@
+{
+  "id": "livestock",
+  "label": "Cow, buffalo, goat or other livestock",
+  "observable10Days": false,
+  "notes": [
+    {
+      "id": "livestock.observe",
+      "text": "The natural history of rabies in mammals other than dogs and cats is not fully understood and therefore the 10-day observation period is not applicable.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "livestock.carry",
+      "text": "Cattle, buffalo and goats can carry rabies and pass it on through a bite or a lick on broken skin.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": false
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "cat",
+  "label": "Cat",
+  "observable10Days": true,
+  "notes": [
+    {
+      "id": "cat.india",
+      "text": "In India, dogs are responsible for about 97% of human rabies, followed by cats (2%), jackals, mongoose and others (1%).",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "cat.observe",
+      "text": "The observation period of 10 days is valid for dogs and cats only.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    }
+  ]
+}

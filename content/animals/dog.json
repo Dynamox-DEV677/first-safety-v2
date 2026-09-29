@@ -1,0 +1,31 @@
+{
+  "id": "dog",
+  "label": "Dog",
+  "observable10Days": true,
+  "notes": [
+    {
+      "id": "dog.who",
+      "text": "In up to 99% of the human rabies cases, dogs are responsible for virus transmission.",
+      "source": "WHO — Rabies fact sheet",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "dog.india",
+      "text": "In India, dogs are responsible for about 97% of human rabies, followed by cats (2%), jackals, mongoose and others (1%).",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "dog.observe",
+      "text": "The observation period of 10 days is valid for dogs and cats only.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    }
+  ]
+}

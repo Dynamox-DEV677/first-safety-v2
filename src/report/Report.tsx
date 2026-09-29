@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { helplines } from '../data/nowMode'
-import { useBiteRecord } from '../hooks/useBiteRecord'
+import { clearBiteRecord, useBiteRecord } from '../hooks/useBiteRecord'
 import { useMedical } from '../hooks/useMedical'
 import { useVaccine } from '../hooks/useVaccine'
-import { useTimer } from '../hooks/useTimer'
-import { href } from '../hooks/useRoute'
+import { clearWashTimer, useTimer } from '../hooks/useTimer'
+import { href, navigate } from '../hooks/useRoute'
+import { writeLS } from '../hooks/useLocalStorage'
 import { REPORT_FOOTER, REPORT_SUBTITLE, REPORT_TITLE, buildReport, reportText, type ReportRow } from './buildReport'
 
 /**
@@ -46,6 +47,17 @@ export default function Report() {
     } catch {
       setCopied('Could not copy on this browser. Use Print / Save as PDF instead.')
     }
+  }
+
+  // "New incident" forgets this bite and its timer so the next person starts clean. The medical
+  // profile and emergency contacts belong to the phone's owner and are kept.
+  const newIncident = () => {
+    if (!window.confirm('Start a new incident? This report is cleared. Your medical profile and contacts are kept.')) return
+    clearWashTimer()
+    clearBiteRecord()
+    writeLS('fs.nowStep', 0)
+    writeLS('fs.triage', null)
+    navigate('/')
   }
 
   return (
@@ -104,6 +116,9 @@ export default function Report() {
             <a className="btn" href={href('/profile/medical')}>
               Edit medical profile
             </a>
+            <button type="button" className="btn" onClick={newIncident}>
+              New incident
+            </button>
             <a className="btn btn-ghost" href={href('/')}>
               Back to start
             </a>

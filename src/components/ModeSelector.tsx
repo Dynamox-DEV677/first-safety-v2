@@ -1,24 +1,32 @@
-import { href } from '../hooks/useRoute'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useTimer } from '../hooks/useTimer'
+import { useBiteRecord } from '../hooks/useBiteRecord'
 import EntryScreen from '../now/EntryScreen'
 
-/** Home. One very large emergency button; learning is second. */
+/** A session older than this is not resumed on a fresh load. The record itself is kept. */
+const RESUME_WINDOW_MS = 30 * 60 * 1000
+
+/**
+ * Home. Always opens on the entry screen - never on a previous session's screens.
+ * A recent, unfinished session gets a small "Continue" affordance underneath; a finished one or
+ * one older than 30 minutes does not, though its record survives for the handover report until
+ * "New incident" is tapped.
+ */
 export default function ModeSelector() {
-  const t = useTimer()
+  const timer = useTimer()
+  const bite = useBiteRecord()
   const [lastStep] = useLocalStorage<number>('fs.nowStep', 0)
-  const resumeStep = t.status !== 'idle' || lastStep > 0 ? Math.max(1, lastStep) : null
+
+  const ageMs = bite?.biteAt ? Date.now() - Date.parse(bite.biteAt) : Number.POSITIVE_INFINITY
+  const complete = Boolean(bite?.completedAt)
+  const recent = Number.isFinite(ageMs) && ageMs >= 0 && ageMs < RESUME_WINDOW_MS
+  const inProgress = timer.status === 'running' || lastStep > 0
+
+  const resumeStep = recent && !complete && inProgress ? Math.max(1, lastStep) : null
 
   return (
-    <div className="page-main stack" style={{ gap: 16 }}>
-      <h1 className="sr-only">First Safety - dog bite first aid and rabies prevention</h1>
+    <div className="page-main" style={{ display: 'flex', flexDirection: 'column' }}>
       <EntryScreen resumeStep={resumeStep} />
-      <a className="btn" href={href('/learn')}>
-        Learn about rabies
-      </a>
-      <p className="small center" style={{ margin: '8px 0 0' }}>
-        Works offline. No login. No tracking.
-      </p>
     </div>
   )
 }

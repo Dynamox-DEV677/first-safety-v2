@@ -1,0 +1,23 @@
+{
+  "id": "rodent",
+  "label": "Rat, mouse or squirrel",
+  "observable10Days": false,
+  "notes": [
+    {
+      "id": "rodent.ncdc",
+      "text": "Bite by rodents: Exposure to domestic rodents, squirrel, hare and rabbits do not ordinarily require PEP.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "rodent.observe",
+      "text": "The natural history of rabies in mammals other than dogs and cats is not fully understood and therefore the 10-day observation period is not applicable.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    }
+  ]
+}

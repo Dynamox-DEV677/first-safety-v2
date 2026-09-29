@@ -98,7 +98,7 @@ export function buildReport(i: ReportInput): ReportSection[] {
     title: 'The bite',
     rows: [
       { label: 'Animal', value: orNull(bite ? ANIMAL_LABEL[bite.animal] : '') },
-      { label: 'Dog known to the patient', value: orNull(bite ? yesNoUnsureLabel(bite.animalKnown) : '') },
+      { label: 'Animal known to the patient', value: orNull(bite ? yesNoUnsureLabel(bite.animalKnown) : '') },
       { label: 'Body part', value: orNull(bite ? bodyPartLabel(bite.bodyPart) : '') },
       { label: 'Skin broken', value: orNull(bite ? yesNoUnsureLabel(bite.brokeSkin) : '') },
     ],

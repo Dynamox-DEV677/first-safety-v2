@@ -1,5 +1,5 @@
 /**
- * NOW mode - the first 15 minutes after a dog bite.
+ * NOW mode - the first 15 minutes after an animal bite.
  *
  * MEDICAL SAFETY: every step below is hard-coded from WHO and India NCDC post-exposure guidance.
  * Do not let any model or script generate, reorder or reword these steps.
@@ -91,10 +91,10 @@ export const steps: Step[] = [
     title: 'Go to a hospital today',
     instruction: 'You need the anti-rabies vaccine today. Go to the nearest government hospital or Anti-Rabies Clinic.',
     detail:
-      'The vaccine is called post-exposure prophylaxis (PEP). Deep bites also need rabies immunoglobulin injected around the wound - the doctor decides. Do not wait to see whether the dog gets sick.',
+      'The vaccine is called post-exposure prophylaxis (PEP). Deep bites also need rabies immunoglobulin injected around the wound - the doctor decides. Do not wait to see whether the animal gets sick.',
     mythBuster: {
       myth: '"The dog looked healthy, so I do not need the vaccine."',
-      fact: 'A dog can spread rabies for days before it looks sick. Start the vaccine today. If the dog can be watched and is still healthy after 10 days, the doctor may stop the course - but only the doctor decides that.',
+      fact: 'An animal can spread rabies for days before it looks sick. Start the vaccine today. If a dog or cat can be watched and is still healthy after 10 days, the doctor may stop the course - but only the doctor decides that.',
     },
     calls: [
       { number: '112', label: 'Emergency', note: 'All India, any phone, free.' },
@@ -108,17 +108,17 @@ export const steps: Step[] = [
 export type DogKnown = 'known' | 'unknown'
 
 export const triage = {
-  question: 'Do you know the dog?',
+  question: 'Do you know the animal?',
   help: 'Both answers lead to the same first aid. Your answer only changes what to tell the doctor. If you are near a tap, the next screen starts the wash timer.',
   options: [
-    { value: 'known' as DogKnown, label: 'Yes', sub: 'A pet, or a dog I can find again' },
-    { value: 'unknown' as DogKnown, label: 'No', sub: 'A stray, or I cannot find it' },
+    { value: 'known' as DogKnown, label: 'Yes', sub: 'A pet, or one I can find again' },
+    { value: 'unknown' as DogKnown, label: 'No', sub: 'A stray or wild one, or I cannot find it' },
   ],
   notes: {
     known:
-      'Start treatment today anyway. Tell the doctor whether the dog is vaccinated. Someone should watch the dog for 10 days - if it stays healthy the doctor may stop the vaccine course. Never wait those 10 days before starting.',
+      'Start treatment today anyway. Tell the doctor whether the animal is vaccinated. If it is a dog or cat, someone should watch it for 10 days - if it stays healthy the doctor may stop the vaccine course. Never wait those 10 days before starting.',
     unknown:
-      'Start treatment today and complete the full course. Tell the doctor you could not identify the dog, and whether it was behaving strangely - aggressive, drooling, or unusually quiet.',
+      'Start treatment today and complete the full course. Tell the doctor you could not identify the animal, and whether it was behaving strangely - aggressive, drooling, or unusually quiet.',
   } satisfies Record<DogKnown, string>,
   sources: ['WHO_FS', 'WHO_TRS', 'NCDC_2019'] as SourceId[],
 }

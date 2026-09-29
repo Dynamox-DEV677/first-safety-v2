@@ -1,0 +1,77 @@
+{
+  "id": "common",
+  "notes": [
+    {
+      "id": "wash15",
+      "text": "If a person is bitten or scratched by a potentially rabid animal, they should immediately and always wash the wound with water and soap for at least 15 minutes.",
+      "source": "WHO — Rabies fact sheet",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "routes",
+      "text": "Rabies spreads to people and animals via saliva, usually through bites, scratches, or direct contact with mucosa (e.g. eyes, mouth, or open wounds).",
+      "source": "WHO — Rabies fact sheet",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "noIrritants",
+      "text": "Do not apply chillies, mustard oil or any other irritant on the bite wounds.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "noStitch",
+      "text": "Do not apply dressing & Do not get the wound stitched.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "suture",
+      "text": "Suturing of wound(s) should be avoided as far as possible. If surgically unavoidable, after adequate cleansing, rabies immunoglobulin should be infiltrated in the depth and around the wound(s) and suturing should be delayed by a few hours.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "noCautery",
+      "text": "Cauterization of wound(s) is no longer recommended as it leaves bad scar, and does not confer any additional advantage over washing the wound(s) with water and soap.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "fatal",
+      "text": "Once the virus infects the central nervous system and clinical symptoms appear, rabies is fatal in 100% of cases. However, rabies deaths are preventable with prompt post exposure prophylaxis (PEP).",
+      "source": "WHO — Rabies fact sheet",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "children",
+      "text": "40% being children under 15.",
+      "source": "WHO — Rabies fact sheet",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
+      "accessed": "2026-09-29",
+      "verified": true
+    },
+    {
+      "id": "observe",
+      "text": "Observation of biting dog/cat: The PEP should be started immediately after the bite. The observation period of 10 days is valid for dogs and cats only. The natural history of rabies in mammals other than dogs and cats is not fully understood and therefore the 10-day observation period is not applicable.",
+      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
+      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
+      "accessed": "2026-09-29",
+      "verified": true
+    }
+  ]
+}

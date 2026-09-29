@@ -65,7 +65,7 @@ export default function TriageFlow() {
       <p className="eyebrow" style={{ marginTop: 22 }}>
         {triage.question}
       </p>
-      <div className="seg" role="group" aria-label="Dog known" data-q="known">
+      <div className="seg" role="group" aria-label="Animal known" data-q="known">
         {triage.options.map((o) => (
           <button
             key={o.value}

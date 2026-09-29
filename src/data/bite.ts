@@ -3,7 +3,17 @@
  * This is a record, not an assessment. Nothing here is interpreted, scored or categorised.
  * Labels are hard-coded; every field is optional and prints as "Not recorded" when empty.
  */
-export type Animal = 'dog' | 'cat' | 'monkey' | 'other' | 'unknown'
+export type Animal =
+  | 'dog'
+  | 'cat'
+  | 'monkey'
+  | 'rodent'
+  | 'bat'
+  | 'mongoose'
+  | 'livestock'
+  | 'human'
+  | 'other'
+  | 'unknown'
 export type YesNoUnsure = 'yes' | 'no' | 'unsure'
 
 export interface BiteRecord {
@@ -20,6 +30,8 @@ export interface BiteRecord {
   washSeconds: number
   /** Step numbers the patient actually saw, recorded as each screen is shown. */
   stepsCompleted: number[]
+  /** ISO timestamp when the patient reached the final "go to a hospital" screen. Empty until then. */
+  completedAt: string
 }
 
 export const BODY_PARTS: { id: string; label: string }[] = [
@@ -41,7 +53,12 @@ export const ANIMAL_LABEL: Record<Animal, string> = {
   dog: 'Dog',
   cat: 'Cat',
   monkey: 'Monkey',
-  other: 'Other animal',
+  rodent: 'Rat, mouse or squirrel',
+  bat: 'Bat',
+  mongoose: 'Mongoose or jackal',
+  livestock: 'Cow, buffalo, goat or other livestock',
+  human: 'Person',
+  other: 'Another animal with fur',
   unknown: '',
 }
 

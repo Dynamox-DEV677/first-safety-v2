@@ -4,10 +4,11 @@ import SourceNote from '../components/SourceNote'
 import TelLink from '../components/TelLink'
 import Timer from './Timer'
 import PrepPanel from './PrepPanel'
+import AnimalNotes from '../components/Sourced'
 
 interface Props {
   step: Step
-  /** Shown on the last step: what to tell the doctor about the dog. */
+  /** Shown on the last step: what to tell the doctor about the animal. */
   triageNote?: string
 }
 
@@ -34,6 +35,7 @@ export default function StepCard({ step, triageNote }: Props) {
           </a>
         </div>
       )}
+      {isHospitalStep && <AnimalNotes />}
 
       {step.calls && (
         <div className="stack" style={{ margin: '0 0 20px' }}>
@@ -53,7 +55,7 @@ export default function StepCard({ step, triageNote }: Props) {
 
       {triageNote && (
         <p className="body">
-          <b>About the dog: </b>
+          <b>About the animal: </b>
           {triageNote}
         </p>
       )}

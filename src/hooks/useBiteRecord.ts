@@ -17,6 +17,7 @@ export function emptyBite(biteAt: string): BiteRecord {
     washStartedAt: '',
     washSeconds: 0,
     stepsCompleted: [],
+    completedAt: '',
   }
 }
 
@@ -43,6 +44,18 @@ export function recordWashSeconds(seconds: number): void {
   const rounded = Math.max(0, Math.round(seconds))
   if (rounded <= current.washSeconds) return
   writeLS(BITE_KEY, { ...current, washSeconds: rounded })
+}
+
+/** The patient reached the final "go to a hospital" screen. Set once; a revisit does not move it. */
+export function markBiteComplete(): void {
+  const current = readLS<BiteRecord | null>(BITE_KEY, null) ?? emptyBite('')
+  if (current.completedAt) return
+  writeLS(BITE_KEY, { ...current, completedAt: new Date().toISOString() })
+}
+
+/** "New incident": forget this bite. The medical profile and contacts belong to the phone's owner and stay. */
+export function clearBiteRecord(): void {
+  writeLS(BITE_KEY, null)
 }
 
 export function useBiteRecord(): BiteRecord | null {

@@ -10,6 +10,7 @@ import Sources from './components/Sources'
 import Settings from './components/Settings'
 import NotFound from './components/NotFound'
 import TriageFlow from './now/TriageFlow'
+import AnimalPicker from './now/AnimalPicker'
 import ChecklistContainer from './now/ChecklistContainer'
 import FinalScreen from './now/FinalScreen'
 import HospitalFinder from './now/HospitalFinder'
@@ -49,6 +50,7 @@ export default function App() {
   const quizMatch = match(route, '/learn/quiz/:difficulty')
 
   if (route === '/') page = <ModeSelector />
+  else if (route === '/now/animal') page = <AnimalPicker />
   else if (route === '/now' || route === '/now/triage') page = <TriageFlow />
   else if (stepMatch) {
     const n = Number(stepMatch.n)
@@ -74,7 +76,8 @@ export default function App() {
     <>
       <Header showMiniTimer={emergency && !onTimerScreen} />
       <main className={`page wrap ${emergency ? '' : 'has-nav'}`}>{page}</main>
-      {!emergency && <Footer />}
+      {/* The entry screen owns its viewport: two buttons and nothing under them. */}
+      {!emergency && route !== '/' && <Footer />}
       {!emergency && <BottomNav route={route} />}
     </>
   )

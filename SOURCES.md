@@ -42,7 +42,13 @@ cauterization no longer recommended; the 10-day observation period is valid for 
 and not applicable to other mammals; in India dogs cause about 97% of human rabies, cats 2%,
 jackals, mongoose and others 1%; bites by all wild animals treated as category III; domestic
 rodents, squirrels, hares and rabbits do not ordinarily require PEP; bat rabies not conclusively
-proved in India and exposure to bats does not at present warrant PEP.
+proved in India and exposure to bats does not at present warrant PEP. The "What did the animal do?"
+list on the area screen, and the "Type of contact" row on the handover report, use the wording of the
+animal-bite patient form in the guideline's annexure (2026-09-30): licks on intact skin; nibbling of
+uncovered skin; minor scratches or abrasions without bleeding; licks on broken skin; single or
+multiple bites with bleeding; contamination of mucous membrane with saliva. The form groups these
+under WHO categories; the app deliberately does not. The report's "10-day observation" row quotes
+the same guideline's sentence on dogs and cats.
 
 **NCDC 2019 (2026-09-03)** — the six first-aid steps as shipped in v1; the intramuscular and
 intradermal schedules in the vaccine tracker.
@@ -65,7 +71,17 @@ with the patient in front of them.
 - **Rodents.** NCDC India (2015) states exposure to domestic rodents, squirrels, hares and rabbits
   does not ordinarily require PEP. WHO's fact sheet does not single rodents out.
 
+## Area of injury
+
+The app asks where the injury is and prints the answer for the doctor. It shows no statement about
+any body site, because the two sources that could be re-read on 2026-09-30 (the WHO fact sheet and
+NCDC 2015) contain none. WHO TRS 1012 is understood to treat some sites differently, but it could
+not be re-read (note 2), so nothing from it about sites is shown. The area recorded never changes
+the first-aid steps and is never turned into a category.
+
 ## What has no source, and is therefore not shown
+
+- Any statement that one body site is more or less dangerous than another (see above).
 
 - Bacterial-infection guidance specific to human bites.
 - Any livestock-specific statement beyond the general rule that the 10-day observation period does

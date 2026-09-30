@@ -505,7 +505,9 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .report-in { max-width: 680px; margin: 0 auto; padding: 16px var(--pad) 40px; }
 .report-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 12px; }
 .rtitle { font-size: 1.9rem; line-height: 1.05; letter-spacing: -0.025em; font-weight: 800; margin: 0; }
-.rsub { color: var(--muted); margin: 6px 0 18px; font-size: 1rem; }
+.rsub { color: var(--muted); margin: 6px 0 14px; font-size: 1rem; }
+/* The five-second line: facts only, boxed so it is the first thing a doctor's eye lands on. */
+.rsum { font-weight: 600; font-size: 1.05rem; line-height: 1.45; margin: 0 0 18px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 4px; }
 .rsec { border-top: 2px solid var(--ink); padding: 10px 0 6px; }
 .rsec h2 { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 0 0 6px; }
 .rrow { padding: 6px 0 10px; }
@@ -524,6 +526,7 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
   .report-in { max-width: none; padding: 0; }
   .rtitle { font-size: 20pt; }
   .rsub { font-size: 11pt; }
+  .rsum { font-size: 12pt; border: 1.5pt solid #000; break-inside: avoid; }
   .rsec { break-inside: avoid; border-top: 1.5pt solid #000; padding: 6pt 0 4pt; }
   .rsec h2 { font-size: 9pt; color: #000; }
   .rl { font-size: 12pt; }

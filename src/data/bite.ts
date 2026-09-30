@@ -17,13 +17,14 @@ export type Animal =
 export type YesNoUnsure = 'yes' | 'no' | 'unsure'
 
 export interface BiteRecord {
-  /** ISO timestamp set when the patient taps "I've been bitten". Empty if unknown. */
+  /** ISO timestamp set when the patient taps a start button. Empty if unknown. */
   biteAt: string
   animal: Animal
   animalKnown: YesNoUnsure | ''
-  /** One of BODY_PARTS ids, or '' if skipped. */
-  bodyPart: string
-  brokeSkin: YesNoUnsure | ''
+  /** AREAS ids, every one the patient tapped. Empty if skipped. */
+  areas: string[]
+  /** CONTACT_TYPES ids, every one the patient tapped. Empty if skipped. */
+  contact: string[]
   /** ISO timestamp when the wash timer was started. Empty if never started. */
   washStartedAt: string
   /** Seconds of washing actually timed. */
@@ -34,13 +35,33 @@ export interface BiteRecord {
   completedAt: string
 }
 
-export const BODY_PARTS: { id: string; label: string }[] = [
-  { id: 'hand-arm', label: 'Hand or arm' },
-  { id: 'leg-foot', label: 'Leg or foot' },
-  { id: 'face-head', label: 'Face or head' },
-  { id: 'torso', label: 'Chest, back or stomach' },
+/** Where the injury is. Plain words; the doctor examines the wound, the app only says where to look. */
+export const AREAS: { id: string; label: string }[] = [
+  { id: 'head-face', label: 'Head or face' },
   { id: 'neck', label: 'Neck' },
+  { id: 'hand-fingers', label: 'Hand or fingers' },
+  { id: 'arm', label: 'Arm' },
+  { id: 'torso', label: 'Chest, back or stomach' },
+  { id: 'genitals', label: 'Private parts' },
+  { id: 'leg', label: 'Leg' },
+  { id: 'foot-toes', label: 'Foot or toes' },
   { id: 'other', label: 'Somewhere else' },
+]
+
+/**
+ * What the animal did. `label` is what the patient taps; `clinical` is the wording of the same
+ * item on the NCDC India animal-bite patient form (National Guidelines on Rabies Prophylaxis,
+ * 2015, annexure), which is what the handover report prints so the doctor reads familiar terms.
+ * The form groups these under WHO categories; the app deliberately does not.
+ */
+export const CONTACT_TYPES: { id: string; label: string; clinical: string }[] = [
+  { id: 'lick-intact', label: 'Licked unbroken skin', clinical: 'Licks on intact skin' },
+  { id: 'nibble', label: 'Nibbled bare skin', clinical: 'Nibbling of uncovered skin' },
+  { id: 'scratch-nobleed', label: 'Scratched or grazed, no bleeding', clinical: 'Minor scratches or abrasions without bleeding' },
+  { id: 'lick-broken', label: 'Licked a cut or wound', clinical: 'Licks on broken skin' },
+  { id: 'bite-bleed', label: 'Bit and it bled', clinical: 'Single or multiple bites with bleeding' },
+  { id: 'saliva-mucosa', label: 'Saliva in eyes, nose or mouth', clinical: 'Contamination of mucous membrane with saliva' },
+  { id: 'unsure', label: 'Not sure', clinical: 'Not sure' },
 ]
 
 export const YES_NO_UNSURE: { id: YesNoUnsure; label: string }[] = [
@@ -62,8 +83,12 @@ export const ANIMAL_LABEL: Record<Animal, string> = {
   unknown: '',
 }
 
-export function bodyPartLabel(id: string): string {
-  return BODY_PARTS.find((b) => b.id === id)?.label ?? ''
+export function areaLabel(id: string): string {
+  return AREAS.find((a) => a.id === id)?.label ?? ''
+}
+
+export function contactClinical(id: string): string {
+  return CONTACT_TYPES.find((c) => c.id === id)?.clinical ?? ''
 }
 
 export function yesNoUnsureLabel(v: YesNoUnsure | ''): string {

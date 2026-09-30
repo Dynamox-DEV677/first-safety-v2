@@ -82,7 +82,16 @@ log.push(['A2 not a mammal', txt('.notice p'), 'tel', [...document.querySelector
 clickText(/^Snake, insect or spider$/); await sleep(100);
 log.push(['A3 notice closes', !document.querySelector('.notice')]);
 clickText(/^Bat$/); await sleep(300);
-log.push(['A4 bat', location.hash, 'recorded', ls('fs.biteRecord')?.animal, 'question', [...document.querySelectorAll('.eyebrow')].map(e => e.textContent.trim()).find(t => /know/.test(t)), 'options', [...document.querySelectorAll('[data-q=known] .btn')].map(b => b.textContent.trim().replace(/\s+/g, ' '))]);
+log.push(['A4 bat -> area', location.hash, 'recorded', ls('fs.biteRecord')?.animal, 'h1', txt('h1'), 'areas', document.querySelectorAll('[aria-label="Area of injury"] .btn').length, 'contacts', document.querySelectorAll('[aria-label="Type of contact"] .btn').length, 'sub-64', short(), 'hscroll', hscroll()]);
+clickText(/^Hand or fingers$/); clickText(/^Head or face$/); clickText(/^Bit and it bled$/); clickText(/^Licked a cut or wound$/); await sleep(150);
+clickText(/^Licked a cut or wound$/); await sleep(150);
+log.push(['A4b multi-select', ls('fs.biteRecord')?.areas, ls('fs.biteRecord')?.contact, 'no category on screen', !/\bcategory (I|II|III)\b/.test(document.body.innerText)]);
+clickText(/^Next$/); await sleep(250);
+log.push(['A4c triage', location.hash, 'h1', txt('h1'), 'options', [...document.querySelectorAll('[data-q=known] .btn')].map(b => b.textContent.trim().replace(/\s+/g, ' ')), 'sub-64', short()]);
+[...document.querySelectorAll('[data-q=known] .btn')][1].click(); await sleep(100);
+clickText(/^Start washing now$/); await sleep(300);
+log.push(['A4d start washing', location.hash, 'timer running', !!ls('fs.timer'), 'known', ls('fs.biteRecord')?.animalKnown]);
+setLS('fs.timer', null);
 await go('#/now/step/6'); await sleep(300);
 log.push(['A5 step 6 bat notes', gate(), 'about label', document.body.innerText.includes('About the dog') ? 'STILL SAYS DOG' : 'ok']);
 await go('#/now/help'); await sleep(400);
@@ -110,7 +119,13 @@ log.push(['F4 complete -> no continue', !hasContinue()]);
 setLS('fs.medical', { name: 'Keep Me', contacts: [] });
 await go('#/report'); await sleep(300);
 const ni = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'New incident');
-log.push(['N1 report', 'new incident button', !!ni, 'h', ni && Math.round(ni.getBoundingClientRect().height), 'report font', getComputedStyle(document.querySelector('.report')).fontFamily.split(',')[0], 'animal row', [...document.querySelectorAll('.rrow')].map(r => r.innerText.replace(/\n/g, ' | ')).find(t => /^Animal/.test(t))]);
+const rows = () => [...document.querySelectorAll('.rrow')].map(r => r.innerText.replace(/\n/g, ' | '));
+const secTitles = () => [...document.querySelectorAll('.rsec h2')].map(h => h.textContent);
+log.push(['N1 report', 'new incident button', !!ni, 'h', ni && Math.round(ni.getBoundingClientRect().height), 'report font', getComputedStyle(document.querySelector('.report')).fontFamily.split(',')[0], 'summary', txt('.rsum'), 'bite rows', rows().filter(t => /^(Animal|10-day|Type of contact|Area of injury)/.test(t)), 'sections', secTitles()]);
+setLS('fs.biteRecord', { ...ls('fs.biteRecord'), animal: 'dog', animalKnown: 'yes' }); await sleep(250);
+log.push(['N1b dog report', 'observation', rows().find(t => /^10-day/.test(t)), 'from-sources rows', [...document.querySelectorAll('.rsec')].filter(x => /From the sources/.test(x.querySelector('h2').textContent)).map(x => [...x.querySelectorAll('.rrow')].map(r => r.querySelector('.rl').textContent)), 'summary', txt('.rsum')]);
+setLS('fs.biteRecord', { ...ls('fs.biteRecord'), animal: 'livestock', animalKnown: '' }); await sleep(250);
+log.push(['N1c livestock report', 'observation', rows().find(t => /^10-day/.test(t)), 'awaiting', rows().find(t => /^Awaiting review/.test(t))]);
 window.confirm = () => false; ni.click(); await sleep(200);
 log.push(['N2 cancel keeps record', !!ls('fs.biteRecord'), location.hash]);
 window.confirm = () => true; ni.click(); await sleep(300);
@@ -201,6 +216,10 @@ async function main() {
   await evaluate(`localStorage.removeItem('fs.theme')`)
   await openAndShot('#/now/animal', 'v2-animals-360.png')
   await evaluate(`(async () => { const b = [...document.querySelectorAll('button')].find(x => /^Cow/.test(x.textContent.trim())); b.click(); await new Promise(r => setTimeout(r, 200)); })()`)
+  await openAndShot('#/now/area', 'v2-area-360.png')
+  await evaluate(`(async () => { for (const re of [/^Hand or fingers$/, /^Bit and it bled$/]) { [...document.querySelectorAll('button')].find(x => re.test(x.textContent.trim())).click(); } await new Promise(r => setTimeout(r, 200)); })()`)
+  await shot('v2-area-360-selected.png')
+  await openAndShot('#/now/triage', 'v2-triage-360.png')
   await openAndShot('#/now/help', 'v2-help-gate-360.png')
   await evaluate(`(async () => { const g = document.querySelector('.gate'); g && g.scrollIntoView(); await new Promise(r => setTimeout(r, 200)); })()`)
   await shot('v2-help-gate-360-scrolled.png')

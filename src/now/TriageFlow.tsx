@@ -1,71 +1,36 @@
-import { BODY_PARTS, YES_NO_UNSURE, type YesNoUnsure } from '../data/bite'
 import { triage, type DogKnown } from '../data/nowMode'
 import { href, navigate } from '../hooks/useRoute'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { updateBiteRecord, useBiteRecord } from '../hooks/useBiteRecord'
+import { updateBiteRecord } from '../hooks/useBiteRecord'
+import { useTimer } from '../hooks/useTimer'
 import SourceNote from '../components/SourceNote'
 
 /**
- * Three optional taps before first aid. Every answer is only recorded for the doctor's report -
- * none of them changes the first-aid steps. The wash timer stays one tap away at all times.
+ * One optional tap before first aid: can the animal be found again? The answer is only recorded
+ * for the doctor's report - it never changes the first-aid steps. Washing stays one tap away.
  */
 export default function TriageFlow() {
   const [known, setKnown] = useLocalStorage<DogKnown | null>('fs.triage', null)
-  const bite = useBiteRecord()
+  const timer = useTimer()
 
-  const pickPart = (id: string) => updateBiteRecord({ bodyPart: bite?.bodyPart === id ? '' : id })
-  const pickBroke = (v: YesNoUnsure) => updateBiteRecord({ brokeSkin: bite?.brokeSkin === v ? '' : v })
   const pickKnown = (v: DogKnown) => {
     setKnown(v)
     updateBiteRecord({ animalKnown: v === 'known' ? 'yes' : 'no' })
   }
 
+  // Starts the 15 minutes at once and lands on the wash step, like every other "wash" button.
+  const startWashing = () => {
+    if (timer.status === 'idle') timer.start()
+    navigate('/now/step/1')
+  }
+
   return (
     <div className="page-main" style={{ display: 'flex', flexDirection: 'column' }}>
-      <p className="eyebrow">Before first aid · all optional</p>
-      <h1 className="title">Three quick taps</h1>
-      <p className="body">
-        These are saved for the doctor. They do not change what to do next. Skip them if you are near a tap.
-      </p>
+      <p className="eyebrow">Tell me what happened · optional</p>
+      <h1 className="title">{triage.question}</h1>
+      <p className="body">Saved for the doctor. It does not change what to do next.</p>
 
-      <p className="eyebrow" style={{ marginTop: 8 }}>
-        Where were you bitten?
-      </p>
-      <div className="grid2" role="group" aria-label="Body part">
-        {BODY_PARTS.map((b) => (
-          <button
-            key={b.id}
-            type="button"
-            className={`btn ${bite?.bodyPart === b.id ? 'on' : ''}`}
-            aria-pressed={bite?.bodyPart === b.id}
-            onClick={() => pickPart(b.id)}
-          >
-            {b.label}
-          </button>
-        ))}
-      </div>
-
-      <p className="eyebrow" style={{ marginTop: 22 }}>
-        Did it break the skin?
-      </p>
-      <div className="seg" role="group" aria-label="Broke skin" data-q="broke">
-        {YES_NO_UNSURE.map((o) => (
-          <button
-            key={o.id}
-            type="button"
-            className={`btn ${bite?.brokeSkin === o.id ? 'on' : ''}`}
-            aria-pressed={bite?.brokeSkin === o.id}
-            onClick={() => pickBroke(o.id)}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-
-      <p className="eyebrow" style={{ marginTop: 22 }}>
-        {triage.question}
-      </p>
-      <div className="seg" role="group" aria-label="Animal known" data-q="known">
+      <div className="stack" role="group" aria-label="Animal known" data-q="known">
         {triage.options.map((o) => (
           <button
             key={o.value}
@@ -81,19 +46,19 @@ export default function TriageFlow() {
           </button>
         ))}
       </div>
-      <p className="small" style={{ marginTop: 10 }}>
+      <p className="small" style={{ marginTop: 12 }}>
         {triage.help}
       </p>
       <SourceNote ids={triage.sources} />
 
       <div className="actions">
-        <div className="stack">
-          <button type="button" className="btn btn-solid" onClick={() => navigate('/now/step/1')}>
+        <div className="btn-row">
+          <a className="btn btn-ghost" href={href('/now/area')}>
+            Back
+          </a>
+          <button type="button" className="btn btn-red" onClick={startWashing}>
             Start washing now
           </button>
-          <a className="btn btn-ghost" href={href('/now/step/1')}>
-            Skip these questions
-          </a>
         </div>
       </div>
     </div>

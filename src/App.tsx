@@ -11,6 +11,7 @@ import Settings from './components/Settings'
 import NotFound from './components/NotFound'
 import TriageFlow from './now/TriageFlow'
 import AnimalPicker from './now/AnimalPicker'
+import AreaScreen from './now/AreaScreen'
 import ChecklistContainer from './now/ChecklistContainer'
 import FinalScreen from './now/FinalScreen'
 import HospitalFinder from './now/HospitalFinder'
@@ -51,6 +52,7 @@ export default function App() {
 
   if (route === '/') page = <ModeSelector />
   else if (route === '/now/animal') page = <AnimalPicker />
+  else if (route === '/now/area') page = <AreaScreen />
   else if (route === '/now' || route === '/now/triage') page = <TriageFlow />
   else if (stepMatch) {
     const n = Number(stepMatch.n)

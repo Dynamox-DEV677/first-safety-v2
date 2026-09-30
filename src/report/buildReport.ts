@@ -3,7 +3,8 @@
  * RECORDS ONLY. No category, no score, no recommendation. Missing fields are null and the
  * UI prints "Not recorded" with a ruled line to write on. Hard-coded labels only.
  */
-import { ANIMAL_LABEL, bodyPartLabel, yesNoUnsureLabel, type BiteRecord } from '../data/bite'
+import { ANIMAL_LABEL, areaLabel, contactClinical, yesNoUnsureLabel, type BiteRecord } from '../data/bite'
+import { ANIMALS, gatedCount, isAnimalId, verified } from '../content'
 import { steps } from '../data/nowMode'
 import { filledContacts, type MedicalProfile } from '../hooks/useMedical'
 import { SCHEDULES, type VaccineRecord } from '../hooks/useVaccine'
@@ -76,6 +77,31 @@ export function formatDuration(seconds: number): string {
 
 const orNull = (s: string | undefined | null): string | null => (s && s.trim() ? s.trim() : null)
 
+const listOrNull = (items: string[]): string | null => {
+  const clean = items.map((x) => x.trim()).filter(Boolean)
+  return clean.length ? clean.join('; ') : null
+}
+
+/**
+ * Whether the 10-day observation applies, in the source's words. The row states what NCDC says
+ * about the species and what the patient said about finding the animal. It draws no conclusion.
+ */
+function observationRow(bite: BiteRecord | null): ReportRow {
+  const label = '10-day observation of the animal'
+  if (!bite || bite.animal === 'unknown') return { label, value: null }
+  if (isAnimalId(bite.animal) && ANIMALS[bite.animal].observable10Days) {
+    const canFind = yesNoUnsureLabel(bite.animalKnown) || 'not recorded'
+    return {
+      label,
+      value: `${ANIMAL_LABEL[bite.animal]} - NCDC 2015: the 10-day observation period is valid for dogs and cats. Patient can find the animal: ${canFind}.`,
+    }
+  }
+  return {
+    label,
+    value: `${ANIMAL_LABEL[bite.animal]} - NCDC 2015: "The observation period of 10 days is valid for dogs and cats only."`,
+  }
+}
+
 export function buildReport(i: ReportInput): ReportSection[] {
   const { bite, med, vaccine, now } = i
 
@@ -99,8 +125,9 @@ export function buildReport(i: ReportInput): ReportSection[] {
     rows: [
       { label: 'Animal', value: orNull(bite ? ANIMAL_LABEL[bite.animal] : '') },
       { label: 'Animal known to the patient', value: orNull(bite ? yesNoUnsureLabel(bite.animalKnown) : '') },
-      { label: 'Body part', value: orNull(bite ? bodyPartLabel(bite.bodyPart) : '') },
-      { label: 'Skin broken', value: orNull(bite ? yesNoUnsureLabel(bite.brokeSkin) : '') },
+      observationRow(bite),
+      { label: 'Type of contact', value: listOrNull((bite?.contact ?? []).map(contactClinical)) },
+      { label: 'Area of injury', value: listOrNull((bite?.areas ?? []).map(areaLabel)) },
     ],
   }
 
@@ -184,7 +211,40 @@ export function buildReport(i: ReportInput): ReportSection[] {
       : [{ label: 'Contact', value: null }],
   }
 
-  return [time, theBite, firstAid, rabies, tetanus, allergies, conditions, patient, emergency]
+  // 10. what the sources say about this animal: verified lines only, each with its source
+  const notes = bite && isAnimalId(bite.animal) ? ANIMALS[bite.animal].notes : []
+  const held = gatedCount(notes)
+  const fromSources: ReportSection | null = notes.length
+    ? {
+        title: `From the sources: ${ANIMAL_LABEL[bite!.animal].toLowerCase()}`,
+        rows: [
+          ...verified(notes).map((n) => ({ label: n.source, value: n.text })),
+          ...(held > 0
+            ? [{ label: 'Awaiting review', value: `${held} line${held === 1 ? '' : 's'} not shown until a reviewer verifies ${held === 1 ? 'it' : 'them'}` }]
+            : []),
+        ],
+      }
+    : null
+
+  return [time, theBite, firstAid, ...(fromSources ? [fromSources] : []), rabies, tetanus, allergies, conditions, patient, emergency]
+}
+
+/** One line a doctor can read in five seconds. Facts only, in the order they matter. */
+export function reportSummary(i: ReportInput): string {
+  const { bite, now } = i
+  const parts: string[] = []
+  if (bite?.biteAt) parts.push(`Exposure ${formatSince(bite.biteAt, now)}`)
+  const wash = Math.max(i.liveWashSeconds ?? 0, bite?.washSeconds ?? 0)
+  parts.push(wash > 0 ? `washed ${formatDuration(wash)}${i.timerRunning ? ' so far' : ''}` : 'wash not timed')
+  if (bite && ANIMAL_LABEL[bite.animal]) {
+    const find = bite.animalKnown === 'yes' ? ', can be found' : bite.animalKnown === 'no' ? ', cannot be found' : ''
+    parts.push(ANIMAL_LABEL[bite.animal].toLowerCase() + find)
+  }
+  const contact = listOrNull((bite?.contact ?? []).map(contactClinical))
+  if (contact) parts.push(contact.toLowerCase())
+  const areas = listOrNull((bite?.areas ?? []).map(areaLabel))
+  if (areas) parts.push(areas.toLowerCase())
+  return parts.join(' · ')
 }
 
 export const REPORT_TITLE = 'Information for the doctor'
@@ -193,8 +253,8 @@ export const REPORT_FOOTER =
   'Recorded by First Safety. First-aid steps follow WHO and NCDC India guidance. This app does not diagnose or prescribe.'
 
 /** Plain-text version for sharing with a parent. */
-export function reportText(sections: ReportSection[], now: Date): string {
-  const lines: string[] = [REPORT_TITLE.toUpperCase(), REPORT_SUBTITLE, `Generated ${formatDateTime(now.toISOString())}`, '']
+export function reportText(sections: ReportSection[], now: Date, summary = ''): string {
+  const lines: string[] = [REPORT_TITLE.toUpperCase(), REPORT_SUBTITLE, ...(summary ? [summary] : []), `Generated ${formatDateTime(now.toISOString())}`, '']
   for (const s of sections) {
     lines.push(s.title.toUpperCase())
     for (const r of s.rows) lines.push(`${r.label}: ${r.value ?? 'Not recorded'}`)

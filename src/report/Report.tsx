@@ -6,7 +6,7 @@ import { useVaccine } from '../hooks/useVaccine'
 import { clearWashTimer, useTimer } from '../hooks/useTimer'
 import { href, navigate } from '../hooks/useRoute'
 import { writeLS } from '../hooks/useLocalStorage'
-import { REPORT_FOOTER, REPORT_SUBTITLE, REPORT_TITLE, buildReport, reportText, type ReportRow } from './buildReport'
+import { REPORT_FOOTER, REPORT_SUBTITLE, REPORT_TITLE, buildReport, reportSummary, reportText, type ReportRow } from './buildReport'
 
 /**
  * The doctor handoff report. Always renders - with an empty profile it is a form to fill by hand.
@@ -38,9 +38,21 @@ export default function Report() {
       }),
     [bite, med, vaccine, t.status, t.elapsed, now],
   )
+  const summary = useMemo(
+    () =>
+      reportSummary({
+        bite,
+        med,
+        vaccine,
+        liveWashSeconds: t.status === 'idle' ? null : t.elapsed,
+        timerRunning: t.status === 'running',
+        now,
+      }),
+    [bite, med, vaccine, t.status, t.elapsed, now],
+  )
 
   const copy = async () => {
-    const text = reportText(sections, new Date())
+    const text = reportText(sections, new Date(), summary)
     try {
       await navigator.clipboard.writeText(text)
       setCopied('Copied. Paste it into WhatsApp or a message.')
@@ -72,6 +84,7 @@ export default function Report() {
 
         <h1 className="rtitle">{REPORT_TITLE}</h1>
         <p className="rsub">{REPORT_SUBTITLE}</p>
+        {summary && <p className="rsum">{summary}</p>}
 
         {sections.map((s) => (
           <section className="rsec" key={s.title}>

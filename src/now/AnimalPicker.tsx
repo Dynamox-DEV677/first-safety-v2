@@ -22,7 +22,7 @@ export default function AnimalPicker() {
 
   const pick = (id: AnimalId | 'other') => {
     updateBiteRecord({ animal: id })
-    navigate('/now/triage')
+    navigate('/now/area')
   }
 
   return (

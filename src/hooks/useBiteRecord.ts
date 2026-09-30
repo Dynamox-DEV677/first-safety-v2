@@ -12,8 +12,8 @@ export function emptyBite(biteAt: string): BiteRecord {
     biteAt,
     animal: 'unknown',
     animalKnown: '',
-    bodyPart: '',
-    brokeSkin: '',
+    areas: [],
+    contact: [],
     washStartedAt: '',
     washSeconds: 0,
     stepsCompleted: [],
@@ -36,6 +36,17 @@ export function markStepCompleted(step: number): void {
   const current = readLS<BiteRecord | null>(BITE_KEY, null) ?? emptyBite('')
   if (current.stepsCompleted.includes(step)) return
   writeLS(BITE_KEY, { ...current, stepsCompleted: [...current.stepsCompleted, step].sort((a, b) => a - b) })
+}
+
+/**
+ * Add or remove one id in a list field. Reads the record at call time, not at render time, so two
+ * quick taps never overwrite each other.
+ */
+export function toggleBiteListItem(key: 'areas' | 'contact', id: string): void {
+  const current = readLS<BiteRecord | null>(BITE_KEY, null) ?? emptyBite('')
+  const list = current[key] ?? []
+  const next = list.includes(id) ? list.filter((x) => x !== id) : [...list, id]
+  writeLS(BITE_KEY, { ...current, [key]: next })
 }
 
 /** Keep the longest wash actually timed. */

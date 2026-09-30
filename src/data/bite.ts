@@ -87,6 +87,10 @@ export function areaLabel(id: string): string {
   return AREAS.find((a) => a.id === id)?.label ?? ''
 }
 
+export function contactLabel(id: string): string {
+  return CONTACT_TYPES.find((c) => c.id === id)?.label ?? ''
+}
+
 export function contactClinical(id: string): string {
   return CONTACT_TYPES.find((c) => c.id === id)?.clinical ?? ''
 }

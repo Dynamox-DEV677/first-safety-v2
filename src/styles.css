@@ -663,6 +663,24 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .srcd-cite a { color: inherit; }
 .gate-msg { margin: 12px 0 0; padding: 12px 14px; border: 1px dashed var(--ink-3); border-radius: 6px; font-size: 0.95rem; color: var(--ink-2); }
 
+/* ---- voice input ---- */
+.voice { margin: 0 0 22px; }
+.voice .small { margin: 8px 0 0; }
+.voice-btn { justify-content: flex-start; text-align: left; gap: 14px; background: var(--ground); border-color: var(--line); }
+.voice-btn .ico { font-size: 1.5rem; line-height: 1; flex: 0 0 auto; }
+.voice-btn b { display: block; font-size: 1.15rem; }
+.voice-btn small { display: block; font-size: 0.85rem; font-weight: 500; color: var(--ink-3); margin-top: 2px; }
+.voice-btn.btn-red { background: var(--red); border-color: var(--red); }
+.voice-btn.btn-red small { color: inherit; opacity: 0.85; }
+.voice-btn[disabled] { opacity: 0.6; cursor: default; }
+.voice-card { border: 2px solid var(--ink); border-radius: 6px; padding: 14px 16px; margin: 0 0 22px; }
+.voice-card .eyebrow { margin-bottom: 4px; }
+.voice-heard { font-size: 1.1rem; font-weight: 500; line-height: 1.4; margin: 0 0 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.chip { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 12px; border: 2px solid var(--ink); border-radius: 999px; font-weight: 700; font-size: 0.95rem; }
+.prog-bar { height: 8px; background: var(--line); margin: 10px 0 8px; }
+.prog-fill { height: 100%; background: var(--ink); transition: width 0.2s linear; }
+
 /* Visible to screen readers only. The home screen's content is one huge button, so its heading
    has nowhere to sit visually - but a page with no heading at all is hostile to a screen reader. */
 .sr-only {

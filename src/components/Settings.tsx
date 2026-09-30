@@ -4,6 +4,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useTheme, type Theme } from '../hooks/useTheme'
 import { REMINDER_KEY, type ReminderSettings } from '../hooks/useVaccine'
 import EmergencyContactFields from './EmergencyContactFields'
+import VoiceSettings from './VoiceSettings'
 import { TIMER_BANNER_KEY, TIMER_KEY, clearWashTimer } from '../hooks/useTimer'
 
 const THEMES: { id: Theme; label: string }[] = [
@@ -108,10 +109,18 @@ export default function Settings() {
         </div>
       )}
 
+      <h2 className="h2">Voice input</h2>
+      <p className="body">
+        Optional. Say what happened instead of tapping it. The speech model runs on this phone and audio never leaves
+        it. English only for now.
+      </p>
+      <VoiceSettings />
+
       <h2 className="h2">Your data</h2>
       <p className="body">
         No account, no analytics, no server. Everything - progress, scores, bookmarks, contacts, the vaccine record
-        and the medical profile - stays on this phone and is never uploaded. Resetting deletes all of it.
+        and the medical profile - stays on this phone and is never uploaded. Resetting deletes all of it (voice files are
+        removed separately above).
       </p>
       <button type="button" className="btn" onClick={resetAll}>
         Reset all data

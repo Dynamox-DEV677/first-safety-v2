@@ -4,6 +4,7 @@ import { navigate } from '../hooks/useRoute'
 import { useTimer } from '../hooks/useTimer'
 import { updateBiteRecord } from '../hooks/useBiteRecord'
 import TelLink from '../components/TelLink'
+import VoiceInput from './VoiceInput'
 
 /**
  * "Tell me what happened" - the tap list. One screen, big targets, no scrolling at 360px.
@@ -29,6 +30,8 @@ export default function AnimalPicker() {
     <div className="page-main" style={{ display: 'flex', flexDirection: 'column' }}>
       <p className="eyebrow">Tell me what happened</p>
       <h1 className="title">What bit or scratched you?</h1>
+
+      <VoiceInput onNotMammal={() => setNotMammal(true)} />
 
       <div className="grid2" role="group" aria-label="Animal">
         {ANIMAL_ORDER.map((id) => (

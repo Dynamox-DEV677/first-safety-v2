@@ -1,12 +1,32 @@
 # First Safety
 
-Dog-bite first aid and rabies prevention for Indian school students. The first 15 minutes matter most.
+Animal-bite first aid and rabies prevention for Indian school students. The first 15 minutes matter most.
 
 Everything runs offline on the phone. No accounts, no analytics, no tracking.
 
-One feature reaches the network, only on an explicit tap, and it degrades to the offline path: the
-nearest-hospital lookup. Everything else - first aid, the timer, all learning content, contacts,
-the medical profile and the doctor's report - never leaves the device.
+Two features reach the network, each only on an explicit tap, and each degrades to the offline
+path: the nearest-hospital lookup, and the one-time download of the speech model from Settings.
+Everything else - first aid, the timer, all learning content, contacts, the medical profile and the
+doctor's report - never leaves the device. Audio never leaves it either: speech is transcribed on
+the phone.
+
+## v2 (ML Empowerment 3.0)
+
+- **Entry screen** - two buttons. Red *Start the 15 minutes* starts the wash timer at once; grey
+  *Tell me what happened* opens the animal picker. A fresh load always starts here.
+- **All mammal bites** - dog, cat, monkey, rodent, bat, mongoose, livestock, person. Every line of
+  guidance lives in `content/` with its source, URL, access date and a `verified` flag; unverified
+  lines are held back by the gate. Snakes, insects and spiders are out of scope and say so.
+- **Area of injury** - where, and what the animal did, in the words of the NCDC patient form. The
+  app never assigns a WHO category.
+- **Handover report** - a five-second summary line, the 10-day-observation rule in NCDC's words,
+  the sourced lines for the animal, and a *New incident* action.
+- **Voice** (`src/voice/`) - optional. *Prepare voice* in Settings downloads Whisper tiny (English,
+  about 70 MB with the runtime) once; after that a tap records up to ten seconds, the phone
+  transcribes it in a worker, and deterministic word lists pre-fill the same taps the patient could
+  have made, shown back for confirmation. Nothing downloads during an emergency: until it is
+  prepared, the emergency screens simply show the buttons. `node scripts/qa_voice.mjs` proves all
+  of this in headless Chrome with a fake microphone, online and with the network cut.
 
 - **NOW** - one big button, three optional taps (body part, broke skin, dog known), six first-aid steps one per screen, a 15-minute wound-wash timer that survives navigation and reloads (audio + vibration at zero), a prep panel that unfolds under the timer for a helper at 12:00, 9:00, 6:00 and 3:00 remaining (what to fetch, what to refuse, what to have ready for the hospital) without ever asking the washing person to move, tap-to-call 112 / 108 / 104 on steps 5 and 6, a single final instruction to go to a hospital today, and a help screen with the WHO exposure categories in plain words.
 - **Doctor's report** (`#/report`) - built to be read in ten seconds or printed: time since bite (live), the bite, first aid actually given (timed wash, steps gone through), rabies vaccine history, tetanus, allergies, conditions and medicines, patient details, tappable emergency contacts. Always white, no app chrome. Renders even when everything is empty: each missing field prints "Not recorded" with a ruled line to fill by hand. Print / Save as PDF and Copy as text.

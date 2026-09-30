@@ -29,6 +29,18 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,woff2}'],
+        // The speech worker is never precached: it is fetched only when someone taps "Prepare voice"
+        // in Settings, and from then on the runtime cache below keeps it. The model and the ONNX
+        // runtime (.wasm/.mjs emitted next to the worker, never in the precache glob) are cached by
+        // transformers.js itself.
+        globIgnores: ['**/voice.worker-*.js'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/voice\.worker-[^/]+\.js$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'fs-voice', cacheableResponse: { statuses: [0, 200] }, expiration: { maxEntries: 8 } },
+          },
+        ],
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,
@@ -39,5 +51,10 @@ export default defineConfig({
   build: {
     target: 'es2019',
     sourcemap: false,
+    chunkSizeWarningLimit: 2500,
   },
+  // The speech worker bundles transformers.js; keep it out of the dev pre-bundler and emit it as
+  // an ES module so its own dynamic imports work.
+  worker: { format: 'es' },
+  optimizeDeps: { exclude: ['@huggingface/transformers'] },
 })

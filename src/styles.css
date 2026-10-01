@@ -1,4 +1,4 @@
-/* First Safety - design tokens
+/* First Safety - design values
    Light by default: white, black text. Dark mode is opt-in from Settings.
    One red, used only on the emergency path (the bitten button, the wash timer,
    the hospital instruction). It is the same red in both themes. */
@@ -15,9 +15,13 @@
   --red-soft: #FCE9EC;
   --go: #0B6B3A;
   --shadow: 0 1px 2px rgba(8, 10, 14, 0.06), 0 10px 26px rgba(8, 10, 14, 0.10);
-  /* Older rules still read these names; they resolve to the tokens above. */
+  /* Older rules still read these names; they resolve to the values above. */
   --bg: var(--paper);
-  --muted: var(--ink-3);
+  /* Secondary text is ink-2, not ink-3: ink-3 is about 4:1, and every instruction must reach 7:1 (§12).
+     ink-3 stays for borders, rules and the entry screen's one footnote, where the brief asks for it. */
+  --muted: var(--ink-2);
+  /* Text on a red fill. Red fills that carry words use --red-deep, which gives 7:1 or better. */
+  --on-red: #FFFFFF;
   --press: var(--sunk);
   --ink-press: #000000;
   --red-press: var(--red-deep);
@@ -40,6 +44,7 @@
     --go: #48C286;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.4);
     --ink-press: #FFFFFF;
+    --on-red: #0C0E12;
   }
 }
 :root[data-theme="dark"] {
@@ -51,6 +56,7 @@
   --go: #48C286;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px rgba(0, 0, 0, 0.4);
   --ink-press: #FFFFFF;
+  --on-red: #0C0E12;
 }
 @media (min-width: 420px) {
   :root { font-size: 18px; }
@@ -121,7 +127,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .hdr-row { display: flex; align-items: center; justify-content: space-between; min-height: 64px; }
 .wordmark { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; text-decoration: none; min-height: 64px; display: inline-flex; align-items: center; }
 .hdr-link { font-size: 0.95rem; color: var(--muted); text-decoration: none; min-height: 64px; display: inline-flex; align-items: center; }
-.minibar { display: block; background: var(--red); color: var(--paper); text-decoration: none; }
+.minibar { display: block; background: var(--red-deep); color: var(--on-red); text-decoration: none; }
 .minibar-in { display: flex; justify-content: space-between; align-items: center; min-height: 64px; font-weight: 700; }
 .minibar-time { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1.25rem; }
 
@@ -197,8 +203,8 @@ h1.title {
 .btn:active { background: var(--press); }
 .btn-solid { background: var(--ink); color: var(--bg); }
 .btn-solid:active { background: var(--ink-press); }
-.btn-red { background: var(--red); border-color: var(--red); color: var(--paper); }
-.btn-red:active { background: var(--red-press); border-color: var(--red-press); }
+.btn-red { background: var(--red-deep); border-color: var(--red-deep); color: var(--on-red); }
+.btn-red:active { background: var(--red); border-color: var(--red); }
 .btn-hero {
   min-height: 42vh;
   min-height: 42dvh;
@@ -282,13 +288,16 @@ select.sel, input.inp, textarea.inp {
 .timer-track { height: 6px; background: var(--line); margin: 22px 0 10px; }
 .timer-fill { height: 100%; background: var(--red); transition: width 0.25s linear; }
 .timer-meta { font-family: var(--mono); display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.timer-done { font-size: 1.3rem; font-weight: 700; color: var(--red); margin: 14px 0 0; }
+.timer-done { font-size: 1.3rem; font-weight: 700; color: var(--ink); margin: 14px 0 0; }
 .timer .btn { margin-top: 16px; }
 
 /* ---- final screen ---- */
 .final { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 62dvh; }
+/* The instruction is in ink for contrast; the red rule marks it as the urgent action. */
 .final h1 {
-  color: var(--red);
+  color: var(--ink);
+  border-left: 8px solid var(--red);
+  padding-left: 16px;
   font-size: clamp(2.4rem, 11vw, 4.2rem);
   line-height: 1;
   letter-spacing: -0.035em;
@@ -470,7 +479,7 @@ details.faq .body { margin-top: 0; }
 
 /* ---- timer banner ---- */
 .minibar-link { display: flex; flex: 1; justify-content: space-between; align-items: center; gap: 12px; color: inherit; text-decoration: none; min-height: 64px; }
-.minibar-x { color: var(--paper); font-weight: 700; font-size: 0.9rem; min-height: 64px; padding: 0 0 0 16px; text-decoration: underline; }
+.minibar-x { color: var(--on-red); font-weight: 700; font-size: 0.9rem; min-height: 64px; padding: 0 0 0 16px; text-decoration: underline; }
 
 /* ---- forms ---- */
 textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
@@ -478,7 +487,7 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .contact { margin: 0 0 18px; }
 .contact .btn-row .inp { width: auto; flex: 1; min-width: 0; }
 
-/* ---- doctor's report: always white, no chrome ---- */
+/* ---- hospital handover report (§7): always white, large mono, no app chrome ---- */
 .report {
   /* The aliases are re-declared here on purpose: var() resolves where it is declared, so the
      root's --bg would otherwise carry the dark value in. */
@@ -486,10 +495,10 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
   --ground: #EEF1F5;
   --sunk: #E2E6EC; --press: #E2E6EC;
   --ink: #080A0E;
-  --ink-2: #464C56;
-  --ink-3: #79818D; --muted: #79818D;
+  --ink-2: #464C56; --muted: #464C56;
+  --ink-3: #79818D;
   --line: #D6DBE2;
-  --red: #C8102E; --red-deep: #9A0B22; --red-press: #9A0B22;
+  --red: #C8102E; --red-deep: #9A0B22; --red-press: #9A0B22; --on-red: #FFFFFF;
   --ink-press: #000000;
   color-scheme: light;
   background: #FFFFFF;
@@ -498,43 +507,52 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
   font-family: var(--mono);
   font-weight: 500;
 }
-/* Plex Mono ships at 500 and 600 only, so nothing in the report asks for a heavier weight and the
-   browser never has to fake one. Buttons keep the app face. */
-.report .btn { font-family: var(--font); }
-.report :is(b, strong, .rtitle, .rl, .rv.rbig, .rsec h2, .tel-num) { font-weight: 600; }
-.report-in { max-width: 680px; margin: 0 auto; padding: 16px var(--pad) 40px; }
-.report-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 12px; }
-.rtitle { font-size: 1.9rem; line-height: 1.05; letter-spacing: -0.025em; font-weight: 800; margin: 0; }
-.rsub { color: var(--muted); margin: 6px 0 14px; font-size: 1rem; }
-/* The five-second line: facts only, boxed so it is the first thing a doctor's eye lands on. */
-.rsum { font-weight: 600; font-size: 1.05rem; line-height: 1.45; margin: 0 0 18px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 4px; }
-.rsec { border-top: 2px solid var(--ink); padding: 10px 0 6px; }
-.rsec h2 { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 0 0 6px; }
-.rrow { padding: 6px 0 10px; }
-.rl { font-weight: 800; font-size: 1rem; }
-.rv { font-size: 1.25rem; font-weight: 500; line-height: 1.3; margin-top: 2px; display: block; color: var(--ink); }
-.rv.rbig { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
-.rv.nr { color: var(--muted); font-style: italic; font-weight: 400; font-size: 1rem; }
-.blank { display: block; border-bottom: 1.5px solid var(--ink); height: 2.1rem; margin: 2px 0 4px; }
-.rfoot { font-size: 0.85rem; color: var(--muted); border-top: 2px solid var(--ink); padding-top: 10px; margin: 0; }
+/* Plex Mono ships at 500 and 600 only, so nothing in the report asks for a heavier weight. */
+.report .btn, .report .tel { font-family: var(--font); }
+.report :is(b, strong, .tel-num) { font-weight: 600; }
+.report-in { max-width: 760px; margin: 0 auto; padding: 12px var(--pad) 40px; }
+.report-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 4px; }
+.lang-seg { flex: 0 0 auto; }
+.lang-seg .btn { width: auto; min-width: 104px; }
+.rec-private { font-family: var(--font); font-size: 1rem; color: var(--ink-2); margin: 0 0 14px; }
+/* Held up and read across a counter: nothing in the record is smaller than 18px. */
+.rec { font-size: 18px; line-height: 1.4; color: var(--ink); }
+.rec-title { font-size: 22px; font-weight: 600; letter-spacing: 0.02em; line-height: 1.25; margin: 0; }
+.rec-title .rec-en, .rec-label .rec-en { display: block; font-size: 18px; color: var(--ink-2); letter-spacing: 0.04em; }
+.rec-gen { font-size: 18px; margin: 4px 0 14px; font-variant-numeric: tabular-nums; }
+.rec-sec { border-top: 2px solid var(--ink); padding: 10px 0 8px; }
+.rec-rows { margin: 0; }
+.rec-row { padding: 6px 0; }
+.rec-row + .rec-row { border-top: 1px solid var(--line); }
+.rec-label { font-size: 18px; font-weight: 600; letter-spacing: 0.06em; margin: 0; color: var(--ink); }
+.rec-value { font-size: 22px; font-weight: 500; margin: 2px 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.rec-value.unk, .rec-list li.unk { font-weight: 600; }
+.rec-list { list-style: none; margin: 6px 0 0; padding: 0; }
+.rec-list li { font-size: 20px; padding: 4px 0 4px 22px; position: relative; overflow-wrap: anywhere; }
+.rec-list li::before { content: "·"; position: absolute; left: 4px; top: 4px; font-weight: 600; }
+.rec-foot { border-top: 2px solid var(--ink); padding-top: 10px; margin-top: 4px; }
+.rec-foot p { font-size: 18px; margin: 0 0 4px; }
+.rec-actions { margin-top: 24px; }
+.rec-actions .grid2 .btn { min-height: 64px; font-size: 1.05rem; }
+.rec-plain { margin-top: 12px; min-height: 240px; font-family: var(--mono); font-size: 16px; }
+@media (min-width: 600px) {
+  .rec-row { display: grid; grid-template-columns: 15rem 1fr; gap: 12px; align-items: baseline; }
+  .rec-value { margin: 0; }
+}
 
 @media print {
-  @page { margin: 14mm; }
+  @page { margin: 12mm; }
   html, body, #root { background: #fff !important; color: #000 !important; }
   .no-print, .hdr, .bnav, .ftr, .minibar { display: none !important; }
   .report { min-height: 0; }
   .report-in { max-width: none; padding: 0; }
-  .rtitle { font-size: 20pt; }
-  .rsub { font-size: 11pt; }
-  .rsum { font-size: 12pt; border: 1.5pt solid #000; break-inside: avoid; }
-  .rsec { break-inside: avoid; border-top: 1.5pt solid #000; padding: 6pt 0 4pt; }
-  .rsec h2 { font-size: 9pt; color: #000; }
-  .rl { font-size: 12pt; }
-  .rv { font-size: 13pt; color: #000; }
-  .rv.rbig { font-size: 16pt; }
-  .rv.nr { font-size: 11pt; color: #444; }
-  .blank { border-bottom: 1pt solid #000; height: 22pt; }
-  .rfoot { font-size: 9pt; color: #000; }
+  .rec { font-size: 12pt; }
+  .rec-title { font-size: 15pt; }
+  .rec-label, .rec-gen, .rec-foot p { font-size: 11pt; }
+  .rec-value { font-size: 13pt; }
+  .rec-list li { font-size: 12pt; }
+  .rec-sec { break-inside: avoid; border-top: 1.5pt solid #000; }
+  .rec-row { display: grid; grid-template-columns: 50mm 1fr; gap: 6mm; }
   a { text-decoration: none; color: #000; }
 }
 
@@ -647,8 +665,8 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .entry-btn b { font-size: 22px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.1; }
 .entry-btn > span:last-child > span { font-size: 15px; font-weight: 500; opacity: 0.85; }
 .entry-btn .ico { font-size: 34px; line-height: 1; flex: 0 0 auto; }
-.entry-btn.red { background: var(--red); color: var(--paper); }
-.entry-btn.red:active { background: var(--red-deep); }
+.entry-btn.red { background: var(--red-deep); color: var(--on-red); }
+.entry-btn.red:active { background: var(--red); }
 .entry-btn.grey { background: var(--ground); color: var(--ink); border: 1px solid var(--line); }
 .entry-btn.grey:active { background: var(--sunk); }
 .entry-note { font-size: 12.5px; color: var(--ink-3); margin: 6px 0 0; text-align: center; }
@@ -659,7 +677,7 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .srcd { padding: 12px 0; border-top: 1px solid var(--line); }
 .srcd:last-child { border-bottom: 1px solid var(--line); }
 .srcd-text { margin: 0 0 6px; font-size: 1.05rem; line-height: 1.4; }
-.srcd-cite { margin: 0; font-family: var(--mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.02em; color: var(--ink-3); }
+.srcd-cite { margin: 0; font-family: var(--mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.02em; color: var(--ink-2); }
 .srcd-cite a { color: inherit; }
 .gate-msg { margin: 12px 0 0; padding: 12px 14px; border: 1px dashed var(--ink-3); border-radius: 6px; font-size: 0.95rem; color: var(--ink-2); }
 
@@ -670,8 +688,9 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .voice-btn .ico { font-size: 1.5rem; line-height: 1; flex: 0 0 auto; }
 .voice-btn b { display: block; font-size: 1.15rem; }
 .voice-btn small { display: block; font-size: 0.85rem; font-weight: 500; color: var(--ink-3); margin-top: 2px; }
-.voice-btn.btn-red { background: var(--red); border-color: var(--red); }
-.voice-btn.btn-red small { color: inherit; opacity: 0.85; }
+.voice-btn.rec-on small { color: inherit; opacity: 0.85; }
+.pulse { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.35; } }
 .voice-btn[disabled] { opacity: 0.6; cursor: default; }
 .voice-card { border: 2px solid var(--ink); border-radius: 6px; padding: 14px 16px; margin: 0 0 22px; }
 .voice-card .eyebrow { margin-bottom: 4px; }
@@ -680,6 +699,32 @@ textarea.inp { min-height: 88px; resize: vertical; line-height: 1.4; }
 .chip { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 12px; border: 2px solid var(--ink); border-radius: 999px; font-weight: 700; font-size: 0.95rem; }
 .prog-bar { height: 8px; background: var(--line); margin: 10px 0 8px; }
 .prog-fill { height: 100%; background: var(--ink); transition: width 0.2s linear; }
+
+/* ---- header: the low-key clinic link ---- */
+.clinic-link { font-family: var(--font); font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; padding-left: 12px; }
+
+/* ---- site question: six big targets, one screen at 360px ---- */
+.sites .btn { min-height: 84px; font-size: 1.1rem; }
+
+/* ---- facts for the clinic ---- */
+.q { margin: 22px 0 0; }
+.q-title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 8px; }
+.q-hint { font-size: 0.95rem; color: var(--ink-2); margin: -4px 0 8px; }
+.q .gate { margin-top: 12px; }
+.seg .btn-col { padding: 8px 6px; }
+.seg .btn-col .sub { font-size: 0.8rem; }
+.btn.on .sub { color: inherit; }
+
+/* ---- voice / type ---- */
+.voice-note { font-weight: 700; margin: 0 0 8px; }
+.type-box { margin-top: 12px; }
+.type-box .btn-row > .inp { flex: 1 1 auto; min-width: 0; width: auto; }
+.btn-row > .type-go { flex: 0 0 auto; width: auto; min-width: 88px; }
+
+/* ---- the LEARN-side voice offer ---- */
+.offer { border: 2px solid var(--ink); border-radius: 6px; padding: 14px 16px; margin: 0 0 24px; }
+.offer .h3 { margin-top: 0; }
+.h3 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; margin: 24px 0 8px; }
 
 /* Visible to screen readers only. The home screen's content is one huge button, so its heading
    has nowhere to sit visually - but a page with no heading at all is hostile to a screen reader. */

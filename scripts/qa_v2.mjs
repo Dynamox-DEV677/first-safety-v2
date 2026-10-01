@@ -1,8 +1,10 @@
 /**
- * v2 QA: the entry screen (§4) and mammal content behind the verify gate (§5), driven in headless
- * Chrome over the DevTools protocol. Fresh profile, 360/390/414, light and dark.
+ * v2 QA in headless Chrome over the DevTools protocol, on the production build, from a clean
+ * profile: entry screen (§4), mammal content and the verify gate (§5), the site question (§6), the
+ * facts screen and handover record (§7), typed input and the no-model path (§9), and the §12 checks
+ * that a browser can prove - contrast, tap sizes, widths, one clock, network, offline.
  * Usage: node scripts/qa_v2.mjs [url] [chromePath] [screenshotDir]
- * Requires the production build to be served (npx vite preview --port 4180 --strictPort).
+ * Requires: npx vite preview --port 4180 --strictPort
  */
 import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs'
@@ -37,99 +39,146 @@ const HELPERS = String.raw`
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const log = [];
 const txt = (sel) => document.querySelector(sel)?.textContent?.trim();
-const go = async (h) => { location.hash = h; await sleep(150); };
-const clickText = (re) => { const b = [...document.querySelectorAll('button, a')].find(x => re.test(x.textContent.trim())); if (!b) throw new Error('no control matching ' + re); b.click(); };
+const go = async (h) => { location.hash = h; await sleep(200); };
+const btn = (re) => [...document.querySelectorAll('button, a')].find(x => re.test(x.textContent.trim().replace(/\s+/g, ' ')));
+const clickText = (re) => { const b = btn(re); if (!b) throw new Error('no control matching ' + re + ' on ' + location.hash); b.click(); };
 const ls = (k) => JSON.parse(localStorage.getItem(k));
 const setLS = (k, v) => { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); window.dispatchEvent(new CustomEvent('fs:storage', { detail: k })); };
-const visible = (e) => e.offsetParent !== null || getComputedStyle(e).position === 'fixed';
-const TAPS = 'button, a.btn, a.tel, a.topic, .bnav a, summary, .hdr-link, .wordmark, select, input, .entry-btn';
+const visible = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden'; };
+const TAPS = 'button, a.btn, a.tel, a.topic, .bnav a, summary, .hdr-link, .wordmark, select, input:not([type=hidden]), .entry-btn';
 const short = (min = 64) => [...document.querySelectorAll(TAPS)].filter(visible).map(e => ({ t: (e.textContent || e.id || e.tagName).trim().replace(/\s+/g, ' ').slice(0, 28), h: Math.round(e.getBoundingClientRect().height) })).filter(x => x.h < min);
-const heights = (sel) => [...document.querySelectorAll(sel)].map(e => ({ t: e.textContent.trim().replace(/\s+/g, ' ').slice(0, 30), h: Math.round(e.getBoundingClientRect().height), w: Math.round(e.getBoundingClientRect().width) }));
 const hscroll = () => document.documentElement.scrollWidth > window.innerWidth;
-const fonts = () => ({ body: getComputedStyle(document.body).fontFamily.split(',')[0], brand: document.querySelector('.entry-brand') ? getComputedStyle(document.querySelector('.entry-brand')).fontFamily.split(',')[0] : null, faces: [...document.fonts].map(f => f.family + ' ' + f.weight + ':' + f.status) });
-const gate = () => [...document.querySelectorAll('.gate')].map(g => ({ title: g.querySelector('h2')?.textContent, lines: g.querySelectorAll('.srcd').length, cites: [...g.querySelectorAll('.srcd-cite a')].every(a => /^https:\/\//.test(a.href)), held: [...g.querySelectorAll('.gate-msg')].map(m => m.textContent) }));
-const hasContinue = () => !![...document.querySelectorAll('a.btn')].find(a => /^Continue first aid/.test(a.textContent.trim()));
+const fits = () => document.documentElement.scrollHeight <= window.innerHeight + 1;
+const gates = () => [...document.querySelectorAll('.gate')].map(g => ({ title: g.querySelector('h2')?.textContent || '', lines: g.querySelectorAll('.srcd').length, cites: [...g.querySelectorAll('.srcd-cite a')].every(a => /^https:\/\//.test(a.href)), held: g.querySelectorAll('.gate-msg').length }));
+const recRows = () => Object.fromEntries([...document.querySelectorAll('.rec-row')].map(r => [r.querySelector('.rec-label').textContent.trim(), r.querySelector('.rec-value').textContent.trim()]));
+const recLists = () => Object.fromEntries([...document.querySelectorAll('.rec-sec')].filter(s => s.querySelector('.rec-list') || (!s.querySelector('.rec-rows') && s.querySelector('h2'))).map(s => [s.querySelector('h2').textContent.trim(), [...s.querySelectorAll('.rec-list li')].map(li => li.textContent.trim())]));
+const clocks = () => [...document.querySelectorAll('.timer-digits, .minibar-time')].filter(visible).length;
+// WCAG contrast of every visible element that has its own text, against its effective background.
+const contrast = (skip) => {
+  const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return [0,0,0,0]; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; };
+  const lum = ([r,g,b]) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126*f(r) + 0.7152*f(g) + 0.0722*f(b); };
+  const bgOf = (el) => { const stack = []; for (let e = el; e; e = e.parentElement) { const c = parse(getComputedStyle(e).backgroundColor); if (c[3] > 0) { stack.push(c); if (c[3] >= 1) break; } } let out = [255,255,255]; const base = parse(getComputedStyle(document.body).backgroundColor); if (base[3] > 0) out = base.slice(0,3); for (let i = stack.length - 1; i >= 0; i--) { const [r,g,b,a] = stack[i]; out = [r*a + out[0]*(1-a), g*a + out[1]*(1-a), b*a + out[2]*(1-a)]; } return out; };
+  const fails = []; let min = 99, n = 0;
+  for (const el of document.querySelectorAll('body *')) {
+    if (!visible(el) || (skip && el.closest(skip))) continue;
+    if (![...el.childNodes].some(c => c.nodeType === 3 && c.textContent.trim())) continue;
+    if (el.closest('[disabled], [aria-hidden=true]')) continue;
+    const fg = parse(getComputedStyle(el).color); const bg = bgOf(el);
+    const a = fg[3]; const f = [fg[0]*a + bg[0]*(1-a), fg[1]*a + bg[1]*(1-a), fg[2]*a + bg[2]*(1-a)];
+    const L1 = lum(f), L2 = lum(bg); const ratio = (Math.max(L1,L2) + 0.05) / (Math.min(L1,L2) + 0.05);
+    n++; if (ratio < min) min = ratio;
+    if (ratio < 7) fails.push({ t: el.textContent.trim().replace(/\s+/g, ' ').slice(0, 40), r: Math.round(ratio * 100) / 100 });
+  }
+  return { n, min: Math.round(min * 100) / 100, fails: fails.slice(0, 8), failCount: fails.length };
+};
 `
 
 const FLOW = String.raw`(async () => {
 ${HELPERS}
-// ---- §4 entry screen on a fresh phone ----
+try {
+// ---- §4 entry on a fresh phone ----
 await go('#/'); await sleep(300);
-log.push(['E1 entry', location.hash, 'brand', txt('.entry-brand'), 'h1', txt('h1'), 'note', txt('.entry-note'), 'continue', hasContinue(), 'learn button gone', !document.body.innerText.includes('Learn about rabies')]);
-log.push(['E2 entry buttons', heights('.entry-btn'), 'sub-64 targets', short(), 'hscroll', hscroll(), 'page fits', document.documentElement.scrollHeight <= window.innerHeight + 1, 'innerH', window.innerHeight]);
-log.push(['E3 fonts', fonts()]);
-log.push(['E4 header', getComputedStyle(document.querySelector('.hdr')).position, getComputedStyle(document.querySelector('.hdr')).top, 'red token', getComputedStyle(document.documentElement).getPropertyValue('--red').trim(), 'ink', getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()]);
-// red: starts the 15 minutes at once and lands on the wash step
-const t0 = Date.now();
+log.push(['E1 entry', txt('.entry-brand'), txt('h1'), 'entry buttons', [...document.querySelectorAll('.entry-btn')].map(b => Math.round(b.getBoundingClientRect().height)), 'fits', fits(), 'clinic link (no incident)', !!document.querySelector('.clinic-link')]);
+// red path
 document.querySelector('.entry-btn.red').click(); await sleep(400);
-const tm = ls('fs.timer'); const b1 = ls('fs.biteRecord');
-log.push(['E5 red button', location.hash, 'timer started within 2s', !!tm && Math.abs(tm.startedAt - t0) < 2000, 'digits', txt('.timer-digits'), 'biteAt set', !!b1?.biteAt, 'washStartedAt set', !!b1?.washStartedAt, 'animal', b1?.animal, 'completedAt', b1?.completedAt]);
-log.push(['E6 step1 taps', 'sub-64', short(), 'hscroll', hscroll(), 'digits font', getComputedStyle(document.querySelector('.timer-digits')).fontFamily.split(',')[0]]);
-// home again: recent, unfinished -> Continue offered
-await go('#/'); await sleep(200);
-log.push(['E7 continue after red', hasContinue(), [...document.querySelectorAll('a.btn')].map(a => a.textContent.trim()).find(t => /^Continue/.test(t))]);
-// grey: a new incident, timer cleared, animal picker
-document.querySelector('.entry-btn.grey').click(); await sleep(300);
-const b2 = ls('fs.biteRecord');
-log.push(['E8 grey button', location.hash, 'timer cleared', ls('fs.timer') === null, 'fresh record', !!b2?.biteAt && b2.biteAt !== b1.biteAt && b2.animal === 'unknown', 'h1', txt('h1')]);
-// ---- §5 animal picker ----
-log.push(['A1 picker', heights('.grid2 .btn').map(x => x.t + ' ' + x.h), 'sub-64', short(), 'hscroll', hscroll(), 'skip', [...document.querySelectorAll('.actions button')].map(a => a.textContent.trim())]);
-clickText(/^Skip - start washing now$/); await sleep(300);
-log.push(['A1b skip starts the timer', location.hash, 'timer running', !!ls('fs.timer'), 'digits', txt('.timer-digits')]);
-setLS('fs.timer', null); await go('#/now/animal'); await sleep(200);
-clickText(/^Snake, insect or spider$/); await sleep(150);
-log.push(['A2 not a mammal', txt('.notice p'), 'tel', [...document.querySelectorAll('.notice a[href^="tel:"]')].map(a => a.getAttribute('href')), 'still on picker', location.hash]);
-clickText(/^Snake, insect or spider$/); await sleep(100);
-log.push(['A3 notice closes', !document.querySelector('.notice')]);
-clickText(/^Bat$/); await sleep(300);
-log.push(['A4 bat -> area', location.hash, 'recorded', ls('fs.biteRecord')?.animal, 'h1', txt('h1'), 'areas', document.querySelectorAll('[aria-label="Area of injury"] .btn').length, 'contacts', document.querySelectorAll('[aria-label="Type of contact"] .btn').length, 'sub-64', short(), 'hscroll', hscroll()]);
-clickText(/^Hand or fingers$/); clickText(/^Head or face$/); clickText(/^Bit and it bled$/); clickText(/^Licked a cut or wound$/); await sleep(150);
-clickText(/^Licked a cut or wound$/); await sleep(150);
-log.push(['A4b multi-select', ls('fs.biteRecord')?.areas, ls('fs.biteRecord')?.contact, 'no category on screen', !/\bcategory (I|II|III)\b/.test(document.body.innerText)]);
-clickText(/^Next$/); await sleep(250);
-log.push(['A4c triage', location.hash, 'h1', txt('h1'), 'options', [...document.querySelectorAll('[data-q=known] .btn')].map(b => b.textContent.trim().replace(/\s+/g, ' ')), 'sub-64', short()]);
-[...document.querySelectorAll('[data-q=known] .btn')][1].click(); await sleep(100);
-clickText(/^Start washing now$/); await sleep(300);
-log.push(['A4d start washing', location.hash, 'timer running', !!ls('fs.timer'), 'known', ls('fs.biteRecord')?.animalKnown]);
+log.push(['E2 red', location.hash, 'timer', !!ls('fs.timer'), 'startedVia', ls('fs.biteRecord')?.startedVia, 'clinic link', !!document.querySelector('.clinic-link'), 'clocks on step 1', clocks()]);
+await go('#/now/details'); await sleep(300);
+log.push(['E3 one clock in the header while away from the timer', clocks(), !!document.querySelector('.minibar-time')]);
 setLS('fs.timer', null);
-await go('#/now/step/6'); await sleep(300);
-log.push(['A5 step 6 bat notes', gate(), 'about label', document.body.innerText.includes('About the dog') ? 'STILL SAYS DOG' : 'ok']);
+
+// ---- §9 grey path, typed words (no speech model on this phone) ----
+await go('#/'); await sleep(200);
+document.querySelector('.entry-btn.grey').click(); await sleep(400);
+log.push(['T1 picker', location.hash, 'startedVia', ls('fs.biteRecord')?.startedVia, 'voice state', document.querySelector('[data-voice]')?.dataset.voice, 'no-model line', txt('.voice-note') || '(none)']);
+const typeIt = async (words) => { let i = null; for (let k = 0; k < 40 && !i; k++) { i = document.querySelector('#what-happened'); if (!i) await sleep(100); } if (!i) throw new Error('no type box on ' + location.hash + ' voice=' + document.querySelector('[data-voice]')?.dataset.voice); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(i, words); i.dispatchEvent(new Event('input', { bubbles: true })); await sleep(80); document.querySelector('.type-box button[type=submit]').click(); await sleep(400); };
+await typeIt('street kutta bit my leg, khoon aa raha hai');
+log.push(['T2 typed', 'heard', txt('.voice-heard'), 'chips', [...document.querySelectorAll('.chip')].map(c => c.textContent), 'record', (({animal, site, contact, bleeding}) => ({animal, site, contact, bleeding}))(ls('fs.biteRecord'))]);
+clickText(/^Looks right$/); await sleep(300);
+log.push(['T3 site known -> facts screen', location.hash]);
+await go('#/now/animal'); await sleep(300);
+await typeIt('a cat or a rat, not sure');
+log.push(['T4 ambiguous -> narrowed taps', txt('[data-voice=done] .body'), [...document.querySelectorAll('[data-voice=candidates] .btn')].map(b => b.textContent)]);
+clickText(/^Try again$/); await sleep(200);
+await typeIt('we reached the hospital');
+await sleep(300);
+log.push(['T5 "we reached the hospital" -> record', location.hash]);
+
+// ---- §6 the site question ----
+await go('#/now/area'); await sleep(300);
+log.push(['S1 area', txt('h1'), 'buttons', [...document.querySelectorAll('.sites .btn')].map(b => b.textContent.trim() + ' ' + Math.round(b.getBoundingClientRect().height)), 'fits 360x740', fits(), 'sub-64', short(), 'hscroll', hscroll()]);
+clickText(/^Hands or fingers$/); await sleep(300);
+log.push(['S2 tap -> facts', location.hash, 'site', ls('fs.biteRecord')?.site, 'site lines', gates()]);
+
+// ---- §7 facts screen ----
+const tap = async (re) => { clickText(re); await sleep(120); };
+await tap(/^About 30 min ago$/);
+log.push(['D1 30 min ago -> late line', gates().map(g => g.title + ':' + g.lines), 'biteAt minus openedAt (min)', Math.round((Date.parse(ls('fs.biteRecord').openedAt) - Date.parse(ls('fs.biteRecord').biteAt)) / 60000)]);
+await tap(/^Saliva in eyes, nose or mouth$/);
+const g2 = gates().length;
+await tap(/^Turmeric$/);
+log.push(['D2 saliva + turmeric -> their sourced lines', 'gates', g2, '->', gates().length, 'texts', [...document.querySelectorAll('.srcd-text')].map(t => t.textContent.slice(0, 40))]);
+await tap(/^Nothing$/);
+log.push(['D3 "Nothing" clears substances', ls('fs.biteRecord').substances]);
+await tap(/^Turmeric$/); await tap(/^Bit$/);
+document.querySelector('[data-q=broke] .btn').click(); await sleep(80);
+document.querySelector('[data-q=bleeding] .btn').click(); await sleep(80);
+await tap(/^Left open$/);
+document.querySelector('[data-q=known] .btn').click(); await sleep(120);
+const vq = !!document.querySelector('[data-q=animal-vaccinated]');
+document.querySelectorAll('[data-q=known] .btn')[1].click(); await sleep(120);
+log.push(['D4 known -> vaccinated question appears', vq, 'stray -> gone', !document.querySelector('[data-q=animal-vaccinated]'), 'fs.triage', ls('fs.triage')]);
+await tap(/^Someone else/);
+log.push(['D5 facts screen', 'sub-64', short(), 'hscroll', hscroll(), 'grading words on screen', /categor|risk|you will be fine/i.test(document.body.innerText), 'record', (({contact, brokeSkin, bleeding, substances, closure, animalKnown, patient}) => ({contact, brokeSkin, bleeding, substances, closure, animalKnown, patient}))(ls('fs.biteRecord'))]);
+
+// ---- §7 the record, opened from the header ----
+document.querySelector('.clinic-link').click(); await sleep(500);
+const rr = recRows(); const rl = recLists();
+const sizes = [...document.querySelectorAll('.rec *')].filter(e => [...e.childNodes].some(c => c.nodeType === 3 && c.textContent.trim())).map(e => parseFloat(getComputedStyle(e).fontSize));
+log.push(['R1 record', location.hash, 'title', txt('.rec-title'), 'generated', txt('.rec-gen'), 'smallest text px', Math.min(...sizes), 'font', getComputedStyle(document.querySelector('.rec')).fontFamily.split(',')[0]]);
+log.push(['R2 rows', rr]);
+log.push(['R3 lists', rl]);
+log.push(['R4 footer', [...document.querySelectorAll('.rec-foot p')].map(p => p.textContent), 'private line', txt('.rec-private')]);
+clickText(/^हिन्दी$/); await sleep(200);
+log.push(['R5 Hindi', 'title', txt('.rec-title'), 'a label', document.querySelector('.rec-row .rec-label')?.textContent, 'a value', document.querySelector('.rec-row .rec-value')?.textContent, 'footer lines', document.querySelectorAll('.rec-foot p').length]);
+clickText(/^English$/); await sleep(150);
+clickText(/^Share$/); await sleep(300);
+log.push(['R6 share (no share sheet in headless)', txt('.rec-actions [role=status]'), 'plain text shown', !!document.querySelector('.rec-plain'), 'starts', document.querySelector('.rec-plain')?.value.split('\n')[0]]);
+log.push(['R7 read aloud button', !!btn(/^Read aloud$/), 'copy', !!btn(/^Copy$/), 'print', !!btn(/^Print \/ PDF$/), 'new incident', !!btn(/^New incident$/), 'add details', !!btn(/^Add or change details$/)]);
+
+// ---- help screen: no self-grading table ----
 await go('#/now/help'); await sleep(400);
-log.push(['A6 help bat', gate(), 'sub-64', short(), 'hscroll', hscroll()]);
-// the gate: livestock and human each carry one unverified string
-const tryAnimal = async (re, id) => { await go('#/now/animal'); await sleep(150); clickText(re); await sleep(250); await go('#/now/help'); await sleep(350); return { id, recorded: ls('fs.biteRecord')?.animal, gates: gate() }; };
-log.push(['A7 gate livestock', await tryAnimal(/^Cow/, 'livestock')]);
-log.push(['A8 gate human', await tryAnimal(/^Person$/, 'human')]);
-log.push(['A9 gate dog', await tryAnimal(/^Dog$/, 'dog')]);
-log.push(['A10 gate other', await tryAnimal(/^Another animal/, 'other')]);
+log.push(['H1 help', 'category table rows', document.querySelectorAll('.cat').length, '"No vaccine needed" on screen', document.body.innerText.includes('No vaccine needed'), 'record button', !!btn(/show the record/)]);
+
+// ---- §5 gate still holds (livestock / human carry unverified lines) ----
+const tryAnimal = async (re) => { await go('#/now/animal'); await sleep(200); clickText(re); await sleep(300); await go('#/now/help'); await sleep(400); return gates(); };
+log.push(['G1 livestock', await tryAnimal(/^Cow/)]);
+log.push(['G2 person', await tryAnimal(/^Person$/)]);
+
 // ---- §4 fresh-load rules ----
 const rec = ls('fs.biteRecord');
-setLS('fs.timer', null); setLS('fs.nowStep', 3); setLS('fs.biteRecord', { ...rec, biteAt: new Date(Date.now() - 5 * 60000).toISOString(), completedAt: '' });
+const ago = (m) => new Date(Date.now() - m * 60000).toISOString();
+setLS('fs.nowStep', 3); setLS('fs.biteRecord', { ...rec, openedAt: ago(5), biteAt: ago(5), completedAt: '' });
 await go('#/'); await sleep(250);
-log.push(['F1 recent + step 3 -> continue', hasContinue()]);
-setLS('fs.biteRecord', { ...rec, biteAt: new Date(Date.now() - 31 * 60000).toISOString(), completedAt: '' }); await sleep(250);
-log.push(['F2 31 min old -> no continue', !hasContinue()]);
-setLS('fs.biteRecord', { ...rec, biteAt: new Date(Date.now() - 5 * 60000).toISOString(), completedAt: '' }); setLS('fs.nowStep', 6);
-await go('#/now/go'); await sleep(300);
-const done = ls('fs.biteRecord');
-log.push(['F3 final screen marks complete', !!done?.completedAt, 'copy', txt('.final-sub')]);
-await go('#/'); await sleep(250);
-log.push(['F4 complete -> no continue', !hasContinue()]);
-// ---- §4 "New incident" on the handover report ----
-setLS('fs.medical', { name: 'Keep Me', contacts: [] });
+const hasContinue = () => !!btn(/^Continue first aid/);
+log.push(['F1 recent unfinished -> continue', hasContinue()]);
+setLS('fs.biteRecord', { ...rec, openedAt: ago(31), biteAt: ago(31), completedAt: '' }); await sleep(250);
+log.push(['F2 31 min old -> fresh entry', !hasContinue(), txt('h1')]);
+setLS('fs.biteRecord', { ...rec, openedAt: ago(5), biteAt: ago(5), completedAt: new Date().toISOString() }); await sleep(250);
+log.push(['F3 finished -> fresh entry', !hasContinue()]);
+
+// ---- New incident ----
 await go('#/report'); await sleep(300);
-const ni = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'New incident');
-const rows = () => [...document.querySelectorAll('.rrow')].map(r => r.innerText.replace(/\n/g, ' | '));
-const secTitles = () => [...document.querySelectorAll('.rsec h2')].map(h => h.textContent);
-log.push(['N1 report', 'new incident button', !!ni, 'h', ni && Math.round(ni.getBoundingClientRect().height), 'report font', getComputedStyle(document.querySelector('.report')).fontFamily.split(',')[0], 'summary', txt('.rsum'), 'bite rows', rows().filter(t => /^(Animal|10-day|Type of contact|Area of injury)/.test(t)), 'sections', secTitles()]);
-setLS('fs.biteRecord', { ...ls('fs.biteRecord'), animal: 'dog', animalKnown: 'yes' }); await sleep(250);
-log.push(['N1b dog report', 'observation', rows().find(t => /^10-day/.test(t)), 'from-sources rows', [...document.querySelectorAll('.rsec')].filter(x => /From the sources/.test(x.querySelector('h2').textContent)).map(x => [...x.querySelectorAll('.rrow')].map(r => r.querySelector('.rl').textContent)), 'summary', txt('.rsum')]);
-setLS('fs.biteRecord', { ...ls('fs.biteRecord'), animal: 'livestock', animalKnown: '' }); await sleep(250);
-log.push(['N1c livestock report', 'observation', rows().find(t => /^10-day/.test(t)), 'awaiting', rows().find(t => /^Awaiting review/.test(t))]);
-window.confirm = () => false; ni.click(); await sleep(200);
-log.push(['N2 cancel keeps record', !!ls('fs.biteRecord'), location.hash]);
-window.confirm = () => true; ni.click(); await sleep(300);
-log.push(['N3 confirm clears', location.hash, 'bite', ls('fs.biteRecord'), 'timer', ls('fs.timer'), 'nowStep', ls('fs.nowStep'), 'triage', ls('fs.triage'), 'medical kept', ls('fs.medical')?.name, 'continue', hasContinue()]);
+window.confirm = () => true; clickText(/^New incident$/); await sleep(300);
+log.push(['N1 new incident', location.hash, 'record', ls('fs.biteRecord'), 'timer', ls('fs.timer'), 'clinic link gone', !document.querySelector('.clinic-link')]);
+
+// ---- §9 voice offer on the LEARN side; online help off by default ----
+await go('#/learn'); await sleep(500);
+log.push(['L1 learn offer', txt('.offer .h3'), 'download button', [...document.querySelectorAll('.offer button')].map(b => b.textContent.trim())]);
+clickText(/^Not now$/); await sleep(200);
+log.push(['L2 not now hides it', !document.querySelector('.offer')]);
+await go('#/settings'); await sleep(300);
+log.push(['O1 online help', [...document.querySelectorAll('[aria-label="Online help"] .btn')].map(b => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')), 'stored', localStorage.getItem('fs.onlineMatch')]);
+} catch (e) { log.push(['ERROR', String(e), location.hash, document.querySelector('[data-voice]')?.outerHTML?.slice(0, 300)]); }
 return log;
 })()`
 
@@ -142,6 +191,7 @@ async function main() {
   let id = 0
   const pending = new Map()
   let exceptions = 0
+  const requests = []
   ws.onmessage = (m) => {
     const msg = JSON.parse(m.data)
     if (msg.id && pending.has(msg.id)) {
@@ -152,6 +202,8 @@ async function main() {
     } else if (msg.method === 'Runtime.exceptionThrown') {
       exceptions++
       console.log('PAGE EXCEPTION:', msg.params.exceptionDetails.text, msg.params.exceptionDetails.exception?.description)
+    } else if (msg.method === 'Network.requestWillBeSent') {
+      requests.push({ url: msg.params.request.url, method: msg.params.request.method })
     }
   }
   const send = (method, params = {}) =>
@@ -169,65 +221,88 @@ async function main() {
     const r = await send('Page.captureScreenshot', { format: 'png' })
     writeFileSync(join(shotDir, name), Buffer.from(r.result.data, 'base64'))
   }
-  const size = (w) => send('Emulation.setDeviceMetricsOverride', { width: w, height: 740, deviceScaleFactor: 2, mobile: true })
-  const dark = (on) => send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: on ? 'dark' : 'light' }] })
-  const openAndShot = async (hash, name) => {
+  const size = (w, h = 740) => send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: true })
+  const open = async (hash) => {
     await send('Page.navigate', { url: url + '?t=' + Date.now() + hash })
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 60; i++) {
       if (await evaluate(`!!document.querySelector('h1')`)) break
       await sleep(100)
     }
     await sleep(400)
-    await shot(name)
   }
+  const print = (row) => console.log(JSON.stringify(row))
 
   await send('Page.enable')
   await send('Runtime.enable')
+  await send('Network.enable')
   await size(360)
   await send('Page.navigate', { url })
-  await sleep(1200)
+  await sleep(1500)
 
   const log = await evaluate(FLOW)
-  for (const row of Array.isArray(log) ? log : [log]) console.log(JSON.stringify(row))
+  for (const row of Array.isArray(log) ? log : [log]) print(row)
 
-  // Screens: entry at three widths, dark, picker, gate, step 6 with notes.
+  // ---- a realistic incident for the screenshots and the contrast pass ----
+  const seed = `(() => { const ago = (m) => new Date(Date.now() - m*60000).toISOString(); localStorage.setItem('fs.biteRecord', JSON.stringify({ openedAt: ago(34), startedVia: 'wash', biteAt: ago(34), biteEstimate: '', animal: 'dog', animalKnown: 'no', animalVaccinated: '', site: 'hand', contact: ['bite'], brokeSkin: 'yes', bleeding: 'yes', substances: ['none'], substancesAt: ago(25), closure: 'open', patient: '', priorRabies: '', priorTetanus: '', washStartedAt: ago(31), washSeconds: 900, stepsCompleted: [1,2,3,4,5,6], completedAt: '' })); return true; })()`
+  await evaluate(seed)
+
+  // ---- widths ----
   for (const w of [360, 390, 414]) {
     await size(w)
-    await send('Page.navigate', { url: url + '?t=' + Date.now() + '#/' })
-    await sleep(600)
-    const check = await evaluate(`(() => { const b = [...document.querySelectorAll('.entry-btn')].map(e => Math.round(e.getBoundingClientRect().height)); return { w: window.innerWidth, hscroll: document.documentElement.scrollWidth > window.innerWidth, entry: b, fits: document.documentElement.scrollHeight <= window.innerHeight + 1 }; })()`)
-    console.log(JSON.stringify(['W entry @' + w, check]))
-    await shot(`v2-entry-${w}.png`)
+    const out = {}
+    for (const [name, hash] of [['entry', '#/'], ['area', '#/now/area'], ['facts', '#/now/details'], ['record', '#/report']]) {
+      await open(hash)
+      out[name] = await evaluate(`(() => ({ hscroll: document.documentElement.scrollWidth > window.innerWidth, fits: document.documentElement.scrollHeight <= window.innerHeight + 1 }))()`)
+    }
+    print(['W @' + w, out])
   }
   await size(360)
-  await dark(true)
-  await openAndShot('#/', 'v2-entry-360-dark.png')
-  const darkCheck = await evaluate(`(() => { const cs = getComputedStyle(document.documentElement); return { paper: cs.getPropertyValue('--paper').trim(), red: cs.getPropertyValue('--red').trim(), bodyBg: getComputedStyle(document.body).backgroundColor, redBtnColor: getComputedStyle(document.querySelector('.entry-btn.red')).color }; })()`)
-  console.log(JSON.stringify(['D dark tokens', darkCheck]))
-  await dark(false)
-  // Manual dark theme (Settings > Dark): the token block behind [data-theme="dark"].
-  await evaluate(`localStorage.setItem('fs.theme', JSON.stringify('dark'))`)
-  await openAndShot('#/', 'v2-entry-360-theme-dark.png')
-  const themeDark = await evaluate(`(() => { const cs = getComputedStyle(document.documentElement); const red = document.querySelector('.entry-btn.red'); return { theme: document.documentElement.dataset.theme, paper: cs.getPropertyValue('--paper').trim(), red: cs.getPropertyValue('--red').trim(), bodyBg: getComputedStyle(document.body).backgroundColor, redBtn: red && getComputedStyle(red).backgroundColor + ' / ' + getComputedStyle(red).color, hdrBg: getComputedStyle(document.querySelector('.hdr')).backgroundColor }; })()`)
-  console.log(JSON.stringify(['D2 theme dark', themeDark]))
-  await openAndShot('#/report', 'v2-report-360-theme-dark.png')
-  const reportDark = await evaluate(`(() => { const r = document.querySelector('.report'); return { bg: getComputedStyle(r).backgroundColor, color: getComputedStyle(r).color, title: getComputedStyle(document.querySelector('.rtitle')).color }; })()`)
-  console.log(JSON.stringify(['D3 report stays white in dark', reportDark]))
-  await evaluate(`localStorage.removeItem('fs.theme')`)
-  await openAndShot('#/now/animal', 'v2-animals-360.png')
-  await evaluate(`(async () => { const b = [...document.querySelectorAll('button')].find(x => /^Cow/.test(x.textContent.trim())); b.click(); await new Promise(r => setTimeout(r, 200)); })()`)
-  await openAndShot('#/now/area', 'v2-area-360.png')
-  await evaluate(`(async () => { for (const re of [/^Hand or fingers$/, /^Bit and it bled$/]) { [...document.querySelectorAll('button')].find(x => re.test(x.textContent.trim())).click(); } await new Promise(r => setTimeout(r, 200)); })()`)
-  await shot('v2-area-360-selected.png')
-  await openAndShot('#/now/triage', 'v2-triage-360.png')
-  await openAndShot('#/now/help', 'v2-help-gate-360.png')
-  await evaluate(`(async () => { const g = document.querySelector('.gate'); g && g.scrollIntoView(); await new Promise(r => setTimeout(r, 200)); })()`)
-  await shot('v2-help-gate-360-scrolled.png')
-  await openAndShot('#/now/step/6', 'v2-step6-360.png')
-  await openAndShot('#/report', 'v2-report-360.png')
+  await open('#/now/area'); await shot('v2-area6-360.png')
+  await open('#/now/details'); await shot('v2-facts-360.png')
+  await evaluate(`window.scrollTo(0, 900)`); await sleep(200); await shot('v2-facts-360-scrolled.png')
+  await open('#/report'); await shot('v2-record-360.png')
+  await evaluate(`window.scrollTo(0, 700)`); await sleep(200); await shot('v2-record-360-scrolled.png')
+  await evaluate(`window.scrollTo(0, 1400)`); await sleep(200); await shot('v2-record-360-scrolled2.png')
+  await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'हिन्दी').click()`); await sleep(300)
+  await evaluate(`window.scrollTo(0, 0)`); await sleep(100); await shot('v2-record-360-hindi.png')
+  await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'English').click()`); await sleep(200)
+  await open('#/now/help'); await shot('v2-help-360.png')
 
-  const sw = await evaluate(`(async () => { try { const r = await navigator.serviceWorker.getRegistration(); const keys = await caches.keys(); let fonts = 0; for (const k of keys) { const c = await caches.open(k); const reqs = await c.keys(); fonts += reqs.filter(q => /\\.woff2/.test(q.url)).length; } return { registered: !!r, caches: keys.length, cachedFonts: fonts }; } catch (e) { return { error: e.message }; } })()`)
-  console.log(JSON.stringify(['SW', sw]))
+  // ---- §12 contrast: every visible text element, light and dark ----
+  const screens = [['entry', '#/'], ['picker', '#/now/animal'], ['area', '#/now/area'], ['facts', '#/now/details'], ['step1', '#/now/step/1'], ['step3', '#/now/step/3'], ['final', '#/now/go'], ['help', '#/now/help'], ['record', '#/report'], ['learn', '#/learn'], ['quiz', '#/learn/quiz'], ['profile', '#/profile'], ['settings', '#/settings']]
+  for (const theme of ['light', 'dark']) {
+    await evaluate(`localStorage.setItem('fs.theme', JSON.stringify('${theme}'))`)
+    const res = {}
+    let worst = []
+    for (const [name, hash] of screens) {
+      await open(hash)
+      const c = await evaluate(`(() => { ${HELPERS.replace('const log = [];', '')}; return contrast('.entry-note, .entry-brand, .timer-digits, .src a, .ftr'); })()`)
+      res[name] = c.failCount ? `${c.min} (${c.failCount} < 7)` : `ok, min ${c.min}`
+      if (c.failCount) worst.push([name, c.fails])
+    }
+    print(['C ' + theme, res])
+    for (const w of worst) print(['C ' + theme + ' fails', w])
+  }
+  await evaluate(`localStorage.setItem('fs.theme', JSON.stringify('light'))`)
+
+  // ---- §12 nothing uploaded: every request this session went to this origin, none to /api ----
+  const origin = new URL(url).origin
+  const foreign = requests.filter((r) => !r.url.startsWith(origin) && !r.url.startsWith('data:') && !r.url.startsWith('blob:') && !r.url.startsWith('chrome'))
+  const api = requests.filter((r) => r.url.includes('/api/'))
+  const posts = requests.filter((r) => r.method !== 'GET')
+  print(['NET', 'requests', requests.length, 'to other hosts', foreign.map((r) => r.url).slice(0, 5), 'to /api', api.length, 'non-GET', posts.map((r) => r.method + ' ' + r.url).slice(0, 5)])
+
+  // ---- §3 offline: network cut, every screen still complete ----
+  const swReady = await evaluate(`navigator.serviceWorker.ready.then(() => true)`)
+  await sleep(1000)
+  await send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 })
+  const offline = {}
+  for (const [name, hash] of [['entry', '#/'], ['picker', '#/now/animal'], ['area', '#/now/area'], ['facts', '#/now/details'], ['step1', '#/now/step/1'], ['final', '#/now/go'], ['help', '#/now/help'], ['record', '#/report'], ['learn', '#/learn'], ['settings', '#/settings']]) {
+    await open(hash)
+    offline[name] = await evaluate(`(() => { const h = document.querySelector('h1'); const busy = [...document.querySelectorAll('[aria-busy=true], .spinner')].length; return h ? (busy ? 'SPINNER ' : '') + h.textContent.trim().slice(0, 32) : 'NO H1'; })()`)
+  }
+  print(['OFF sw', swReady, offline])
+  await send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 })
 
   console.log(`page exceptions: ${exceptions}`)
   console.log(`screenshots in ${shotDir}`)

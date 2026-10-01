@@ -42,6 +42,8 @@ export default defineConfig({
           },
         ],
         navigateFallback: '/index.html',
+        // The optional online matcher is a serverless function, never a page.
+        navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,

@@ -1,38 +1,71 @@
 # First Safety
 
-Animal-bite first aid and rabies prevention for Indian school students. The first 15 minutes matter most.
+First aid for animal bites and scratches, for Indian school students and the people around them.
+It works with no network, no account and no API key. Every clinical line on screen is quoted from
+WHO or NCDC India, with the source shown. **[SOURCES.md](SOURCES.md)** lists every document, its URL
+and the date it was read.
 
-Everything runs offline on the phone. No accounts, no analytics, no tracking.
+## What it refuses to do
 
-Two features reach the network, each only on an explicit tap, and each degrades to the offline
-path: the nearest-hospital lookup, and the one-time download of the speech model from Settings.
-Everything else - first aid, the timer, all learning content, contacts, the medical profile and the
-doctor's report - never leaves the device. Audio never leaves it either: speech is transcribed on
-the phone.
+- **It does not diagnose.** No symptom checker, no "you'll be fine".
+- **It never tells you your WHO exposure category**, how likely rabies is, or whether you need
+  immunoglobulin. That is a clinician's call, made with the patient in front of them; a phone that
+  gets it wrong either sends someone home to die or floods a clinic.
+- **No AI writes anything you read.** Not a step, not a warning, not a word of the report.
+- **Nothing leaves the phone.** No account, no analytics, no server for your data. The handover
+  record is never uploaded; copy, share and read-aloud each start from your own tap.
 
-## v2 (ML Empowerment 3.0)
+## What it does
 
-- **Entry screen** - two buttons. Red *Start the 15 minutes* starts the wash timer at once; grey
-  *Tell me what happened* opens the animal picker. A fresh load always starts here.
-- **All mammal bites** - dog, cat, monkey, rodent, bat, mongoose, livestock, person. Every line of
-  guidance lives in `content/` with its source, URL, access date and a `verified` flag; unverified
-  lines are held back by the gate. Snakes, insects and spiders are out of scope and say so.
-- **Area of injury** - where, and what the animal did, in the words of the NCDC patient form. The
-  app never assigns a WHO category.
-- **Handover report** - a five-second summary line, the 10-day-observation rule in NCDC's words,
-  the sourced lines for the animal, and a *New incident* action.
-- **Voice** (`src/voice/`) - optional. *Prepare voice* in Settings downloads Whisper tiny (English,
-  about 70 MB with the runtime) once; after that a tap records up to ten seconds, the phone
-  transcribes it in a worker, and deterministic word lists pre-fill the same taps the patient could
-  have made, shown back for confirmation. Nothing downloads during an emergency: until it is
-  prepared, the emergency screens simply show the buttons. `node scripts/qa_voice.mjs` proves all
-  of this in headless Chrome with a fake microphone, online and with the network cut.
+It washes, it times, it records, it hands over.
 
-- **NOW** - one big button, three optional taps (body part, broke skin, dog known), six first-aid steps one per screen, a 15-minute wound-wash timer that survives navigation and reloads (audio + vibration at zero), a prep panel that unfolds under the timer for a helper at 12:00, 9:00, 6:00 and 3:00 remaining (what to fetch, what to refuse, what to have ready for the hospital) without ever asking the washing person to move, tap-to-call 112 / 108 / 104 on steps 5 and 6, a single final instruction to go to a hospital today, and a help screen with the WHO exposure categories in plain words.
-- **Doctor's report** (`#/report`) - built to be read in ten seconds or printed: time since bite (live), the bite, first aid actually given (timed wash, steps gone through), rabies vaccine history, tetanus, allergies, conditions and medicines, patient details, tappable emergency contacts. Always white, no app chrome. Renders even when everything is empty: each missing field prints "Not recorded" with a ruled line to fill by hand. Print / Save as PDF and Copy as text.
-- **Medical profile** (`#/profile/medical`) - optional details for a doctor, saved only on the phone: name, age, weight, blood group, previous rabies vaccination, tetanus date, allergies, conditions, medicines, up to three emergency contacts, plus the vaccine tracker (NCDC intramuscular or intradermal schedule, due dates, doses done, RIG given, where the doses are given, calendar export, open-app reminders).
-- **LEARN** - 50 myth-vs-fact flip cards, a 45-question quiz (Easy / Medium / Hard) with sourced explanations, a 10-item FAQ, and four verified videos (WHO, CDC, two Indian hospitals) that open on YouTube.
-- **PROFILE / SCORES / SETTINGS** - streak, cards learned, 12 text-only achievements, a per-device top-10 leaderboard with share, light / dark / system theme, reset all data, sources.
+1. **Two buttons.** Red *Start the 15 minutes* starts the wound-wash timer at once — WHO says wash
+   with soap and running water for 15 minutes. Grey *Tell me what happened* is for afterwards: on
+   the way to a clinic, wanting to know what next.
+2. **The 15-minute timer** keeps true time through a locked screen, a backgrounded app and a reload.
+3. **Any mammal** — dog, cat, monkey, rat, bat, mongoose, livestock, person — with what the sources
+   say about that animal, verbatim and cited. Snakes, insects and spiders: one line, call 108.
+4. **Where is the bite**, and a few facts for the clinic — when it happened, bite / scratch / lick,
+   skin broken, bleeding, stray or known, anything put on the wound, stitched or open.
+5. **"I'm at the clinic"** — always one tap away — opens the **incident record**: time of bite and
+   minutes since, when washing started and for how long, the animal, the site, what was done and,
+   just as important, what was *not* done ("No turmeric, chilli, oil or other substance applied").
+   Every unknown says **Unknown** so the clinician knows to ask. Large mono type to hold up across a
+   counter, Hindi labels beside the English, copy, share, print, and read aloud with the phone's
+   own voice. It ends: *"This is a record of what happened. It contains no medical assessment."*
+
+## Offline is the app
+
+The test, run before every submission (`scripts/qa_v2.mjs` does it automatically):
+
+```
+Delete the Gemini API key entirely. Turn off wifi and mobile data.
+Open the app on a phone that has loaded it once.
+Every feature must still work and every screen must still be complete.
+```
+
+No screen waits on a network call. No spinner can be left spinning. The optional online matcher
+(below) has 2.5 seconds and then the app silently uses its own answer.
+
+## v2 at a glance (ML Empowerment 3.0)
+
+| | Where |
+|---|---|
+| Entry screen, fresh-load rules, "New incident" | `src/now/EntryScreen.tsx`, `src/components/ModeSelector.tsx` |
+| All mammals, sourced and behind the verify gate | `content/`, `src/content/index.ts`, `src/components/Sourced.tsx` |
+| Site question (six options, one screen) | `src/now/AreaScreen.tsx` |
+| Facts for the clinic | `src/now/TriageFlow.tsx` (route `#/now/details`) |
+| Incident record | `src/report/buildReport.ts`, `src/report/Report.tsx` |
+| Voice and typing, on the phone | `src/voice/`, `src/now/VoiceInput.tsx`, `src/components/VoiceOffer.tsx` |
+| Optional online matcher | `api/match.ts`, `src/voice/online.ts`, `src/voice/onlineSchema.ts` |
+
+**Voice** (`src/voice/`) is optional and never downloads during an emergency. On the LEARN home
+(or Settings) one tap downloads Whisper tiny (English) and its runtime, about 70 MB, once; after
+that a tap records up to ten seconds and the phone transcribes it in a worker. Typing works with no
+download at all. An explicit synonym table (English, Hinglish, Hindi, Tamil — *kutta*, *billi*,
+*bandar*, *naai*, *poonai*, कुत्ता, நாய்…) turns the words into the same taps the patient could have
+made, shown back for confirmation. If the model isn't on the phone, the screen says *"Voice needs a
+one-time download. Tap answers for now."* and the buttons are right there.
 
 ## Medical safety
 
@@ -46,7 +79,7 @@ Every first-aid step, fact, quiz answer and FAQ is **hard-coded** under `src/dat
 
 Sources are listed per item in `src/data/sources.ts` and shown in the app. Nothing is generated at runtime. Do not let a model write or edit anything in `src/data/`.
 
-The bite record and the doctor's report **record what the patient reports and never interpret it**: no category, no score, no recommendation, no allergy warnings. The doctor decides everything. There is deliberately no symptom checker: symptoms do not change the action (every skin-breaking bite needs the vaccine the same day).
+The bite record and the incident record **record what the patient reports and never interpret it**: no category, no score, no recommendation, no allergy warnings. The doctor decides everything. There is deliberately no symptom checker: symptoms do not change the action (every skin-breaking bite needs the vaccine the same day).
 
 Left empty until a person verifies them against an official source:
 
@@ -106,12 +139,49 @@ contact into the shared list once, at app start, then removes the old key.
 - A global leaderboard or crowdsourced hospital ratings: both need a server. The leaderboard is per device.
 - Embedded YouTube players: they load Google scripts and cookies into an app used by children and do not work offline. Videos are links.
 - Push notifications: no server. Reminders show when the app is opened on a dose day; the calendar export gives real alarms.
-- A symptom checker (see above). App accounts, logins, analytics, tracking of any kind.
-- Any upload of the medical profile, the bite record or the doctor's report. Those stay on the phone.
+- A symptom checker, a risk score, a WHO-category calculator. App accounts, logins, analytics, tracking of any kind.
+- Any upload of the medical profile, the bite record or the incident record. Those stay on the phone.
+- Firebase or any backend for user data. The one serverless function (below) holds no data.
+
+## Optional online matcher (Gemini)
+
+Built last and built to be deleted. **The app is complete without it.**
+
+It has exactly one job: when someone typed or said something the offline matcher could not place,
+pick which existing protocol it is. It returns only `{animal, site, broke_skin, confidence,
+nextQuestion}`, validated on the server and again on the phone; anything outside that schema, any
+confidence below 0.75, any error or a reply slower than 2.5 seconds, and the app falls back to its
+own tap list without telling anyone. It never writes a word the user reads.
+
+It is **off by default** (Settings → Online help for unclear answers), because it sends the person's
+words — never the report, never audio — to Google. With it off, the app makes no request beyond
+loading itself (checked in `scripts/qa_v2.mjs`).
+
+To turn it on for a deployment:
+
+1. An adult with a Google account creates a Gemini API key in Google AI Studio (Google's terms
+   require the key holder to be 18 or over).
+2. Vercel → Project → Settings → Environment Variables → `GEMINI_API_KEY`. Never in the repo, never
+   in a `.env` that gets committed, never in a screenshot or a chat. `.env.example` holds the empty
+   name only. Optional: `GEMINI_MODEL` (default `gemini-3.8-flash`).
+3. Google Cloud Console → the key → restrict it to the *Generative Language API* only. If you also
+   add an HTTP-referrer restriction, set `GEMINI_REFERER` to your site's URL so the function sends it.
+4. The function rate-limits itself (6 calls a minute per IP, 60 per instance) and sends
+   `store: false` so Google does not keep the text.
+
+**To delete it** (five minutes): remove `api/match.ts`, `src/voice/online.ts`,
+`src/voice/onlineSchema.ts`, `tsconfig.api.json`, the "Online help" block in
+`src/components/Settings.tsx`, and the one `askOnlineMatcher` call in `src/now/VoiceInput.tsx`;
+drop `&& tsc --noEmit -p tsconfig.api.json` from the build script.
 
 ## Design
 
-White background, black text, one red (`#d3202f`) used only on the emergency path: the bitten button, the wash timer and the hospital instruction. Dark mode is opt-in and keeps the same red; the doctor's report is white in both themes. No shadows, gradients or decorative icons. Designed for a 360px-wide screen first; the bottom navigation and the timer banner appear only where they belong (the banner only on `#/now` routes, for two hours, dismissable).
+The v2 tokens on `:root` (`--paper`, `--ground`, `--ink`, `--red` and friends), Archivo for
+everything and IBM Plex Mono for clocks, labels and the record — both self-hosted so nothing loads
+from the network. Red means one thing: an urgent action. Red fills that carry words use `--red-deep`
+so every instruction reaches 7:1 contrast in both themes; secondary text is `--ink-2` for the same
+reason. Buttons are at least 64px tall; the two entry buttons are 132px. Designed at 360px first and
+tested at 360 / 390 / 414. The incident record is white in both themes.
 
 ## Develop
 
@@ -121,58 +191,42 @@ npm run dev
 ```
 
 ```bash
-npm run build     # typecheck + production build to dist/
-npm run preview   # serve dist/ on http://localhost:4173 (service worker active)
+npm run build        # typecheck the app and the serverless function, then build dist/
+npx vite preview --port 4180 --strictPort   # serve dist/ with the service worker active
 ```
 
 ## Test
 
-Both scripts need the preview server running and Chrome installed (path is the second argument).
-
 ```bash
-node scripts/qa.mjs http://localhost:4173/            # fresh profile: red button -> report, banner rules, tel links, medical profile, regression; saves screenshots to qa-shots/
-node scripts/check_sw.mjs http://localhost:4173/      # installs the service worker, cuts the network, cold-loads deep routes
+npm run test:logic                                    # matcher, schema, serverless function (fake Gemini), incident record
+node scripts/qa_v2.mjs http://localhost:4180/         # every v2 screen at 360/390/414, 7:1 contrast both themes, network, offline
+node scripts/qa_voice.mjs http://localhost:4180/      # voice with a fake microphone: no-model path, opt-in download, online and offline
+node scripts/qa_timer_v2.mjs http://localhost:4180/   # timer through a frozen (locked/backgrounded) page and a reload
 ```
 
-Nearest hospitals:
-
-```bash
-node scripts/qa_geo.mjs http://localhost:4180/
-```
-
-Permission granted (Overpass stubbed with a realistic payload), a cached fix with permission since
-denied, denial from cold, airplane mode, and both Overpass endpoints returning 504.
-
-Contacts and the confirm popup:
-
-```bash
-node scripts/qa_contacts.mjs http://localhost:4180/
-```
-
-The empty-state fallback, saving and surviving a real reload, the popup contents, Cancel and Escape
-dialling nothing, Call now producing exactly one `tel:` navigation, and the same flow offline with
-zero network requests. `tel:` handoffs are observed via `Page.frameRequestedNavigation`, not
-inferred. Screenshots:
-
-```bash
-node scripts/shots.mjs http://localhost:4180/
-```
+`docs/VERIFY.md` records the results against the brief's checklist.
 
 ## Deploy (Vercel)
 
-Import the repo in Vercel or run `vercel` in this folder. `vercel.json` sets the Vite framework, `dist` output, and no-cache headers for `sw.js`. Every push to `main` redeploys.
+Import the repo in Vercel or run `vercel` in this folder. `vercel.json` sets the Vite framework,
+`dist` output and no-cache headers for `sw.js`; `api/match.ts` deploys as a serverless function and
+answers 503 (the app falls back) until a key is set. Every push to `main` redeploys.
 
 ## Layout
 
 ```
-src/data/        hard-coded content: nowMode, learnMode, quizzes, faq, videos, achievements, bite, sources
-src/hooks/       localStorage, hash routing, timer, theme, learn progress, scores, vaccine tracker, bite record, medical profile, achievements
-src/now/         emergency path: entry, triage taps, steps, timer, final screen, hospital finder
-src/report/      doctor handoff report (buildReport.ts assembles rows; Report.tsx renders and prints)
+content/         sourced clinical text: common, situations, animals/* (each string: text, source, url, accessed, verified)
+api/             the optional online matcher (one serverless function)
+src/content/     loads content/ and applies the verify gate
+src/data/        hard-coded v1 content: nowMode, learnMode, quizzes, faq, videos, achievements, bite, sources
+src/hooks/       localStorage, hash routing, timer, theme, learn progress, scores, vaccine tracker, bite record, medical profile
+src/now/         emergency path: entry, animal, site, facts, steps, timer, final screen, help, voice input
+src/report/      the incident record (buildReport.ts builds it; Report.tsx shows, copies, shares, reads aloud, prints)
+src/voice/       on-device speech (worker), the synonym matcher, the optional online matcher client
 src/learn/       cards, FAQ, videos, bookmarks
 src/quiz/        quiz home and play
 src/profile/     profile, medical profile, vaccination tracker, achievements
-src/leaderboard/ per-device top scores
-src/components/  header, bottom nav, footer, settings, sources, tel link
-scripts/         icon generator (Python/Pillow), headless QA, offline test
+src/components/  header, bottom nav, footer, settings, sources, sourced lines, tel link, voice offer
+scripts/         QA in headless Chrome, logic tests, icon generator
+docs/            VERIFY.md (the checklist), DEMO.md (the video), SUBMISSION.md (draft)
 ```

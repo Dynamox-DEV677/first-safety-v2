@@ -53,7 +53,7 @@ export default function App() {
   if (route === '/') page = <ModeSelector />
   else if (route === '/now/animal') page = <AnimalPicker />
   else if (route === '/now/area') page = <AreaScreen />
-  else if (route === '/now' || route === '/now/triage') page = <TriageFlow />
+  else if (route === '/now' || route === '/now/triage' || route === '/now/details') page = <TriageFlow />
   else if (stepMatch) {
     const n = Number(stepMatch.n)
     onTimerScreen = n === 1
@@ -76,7 +76,7 @@ export default function App() {
 
   return (
     <>
-      <Header showMiniTimer={emergency && !onTimerScreen} />
+      <Header showMiniTimer={emergency && !onTimerScreen} route={route} />
       <main className={`page wrap ${emergency ? '' : 'has-nav'}`}>{page}</main>
       {/* The entry screen owns its viewport: two buttons and nothing under them. */}
       {!emergency && route !== '/' && <Footer />}

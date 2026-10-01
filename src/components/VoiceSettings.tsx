@@ -13,6 +13,12 @@ import {
 
 type Phase = 'checking' | 'unsupported' | 'not-ready' | 'preparing' | 'ready' | 'error'
 
+/** Best guess at "this download would use mobile data" - Android Chrome exposes it, others don't. */
+function onMobileData(): boolean {
+  const c = (navigator as Navigator & { connection?: { type?: string; saveData?: boolean } }).connection
+  return !!c && (c.type === 'cellular' || c.saveData === true)
+}
+
 /**
  * The only place voice files are ever downloaded: one explicit tap, size stated up front, meant
  * for a calm moment on Wi-Fi. Everything it fetches is kept on the phone for offline use.
@@ -99,8 +105,13 @@ export default function VoiceSettings() {
           {error}
         </p>
       )}
+      {onMobileData() && (
+        <p className="body" role="note">
+          <b>You seem to be on mobile data.</b> This uses about {VOICE_DOWNLOAD_MB} MB of it. Wi-Fi is better.
+        </p>
+      )}
       <button type="button" className="btn btn-solid" onClick={prepare}>
-        Prepare voice for offline use · about {VOICE_DOWNLOAD_MB} MB
+        Download voice input · about {VOICE_DOWNLOAD_MB} MB
       </button>
       <p className="small" style={{ marginTop: 10 }}>
         Do this once, on Wi-Fi, before you need it. Nothing downloads during an emergency: until this is done, the

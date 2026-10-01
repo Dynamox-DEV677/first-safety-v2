@@ -1,0 +1,52 @@
+{
+  "id": "situations",
+  "about": "Sourced lines shown only when the patient's answers make them relevant. Selected by the facts recorded (site, time, contact, what was put on the wound); never by a judgement. The sources read contain no patient-facing guidance specific to one body site, so every site gets the same two location lines (see SOURCES.md, 'Area of injury').",
+  "site": [
+    {
+      "id": "site.location",
+      "text": "The incubation period for rabies is typically 2–3 months but may vary from one week to one year, depending on factors such as the location of virus entry and the viral load.",
+      "source": "WHO — Rabies fact sheet",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
+      "accessed": "2026-09-30",
+      "verified": true
+    },
+    {
+      "id": "site.wash",
+      "text": "Washing of wounds is desirable up to 15 minutes and should be carried out as soon as possible with soap and water. Since RABV can persist and even multiply at the site of the bite for a long time, wound management must be performed even if the patient reports late.",
+      "source": "NCDC India — National Guidelines for Rabies Prophylaxis (2019), p. 6",
+      "url": "https://ncdc.mohfw.gov.in/uploads/resource/1769332447_National-Guidelines-for-Rabies-Prophylaxis.pdf",
+      "accessed": "2026-10-01",
+      "verified": true
+    }
+  ],
+  "late": [
+    {
+      "id": "late.wash",
+      "text": "It should be noted that immediate washing of wounds is a priority. However, the victim should not be deprived of the benefits of wound management as long as there is an unhealed wound which can be washed (in case the victim reported late).",
+      "source": "NCDC India — National Guidelines for Rabies Prophylaxis (2019), p. 7",
+      "url": "https://ncdc.mohfw.gov.in/uploads/resource/1769332447_National-Guidelines-for-Rabies-Prophylaxis.pdf",
+      "accessed": "2026-10-01",
+      "verified": true
+    }
+  ],
+  "mucosa": [
+    {
+      "id": "mucosa.rinse",
+      "text": "If soap or a virucidal agent is not available, the wound(s) should be thoroughly and extensively washed with water. Eyes and mucosa, if exposed, should be thoroughly rinsed with water.",
+      "source": "NCDC India — National Guidelines for Rabies Prophylaxis (2019), p. 7",
+      "url": "https://ncdc.mohfw.gov.in/uploads/resource/1769332447_National-Guidelines-for-Rabies-Prophylaxis.pdf",
+      "accessed": "2026-10-01",
+      "verified": true
+    }
+  ],
+  "applied": [
+    {
+      "id": "applied.irritants",
+      "text": "The application of irritants (like chilies, oil, turmeric, lime, salt, etc.) is unnecessary and damaging. In case irritants have been applied on the wounds, gentle washing with soap or detergent should be done to remove the external applicant/s followed by flushing with copious amount of water immediately.",
+      "source": "NCDC India — National Guidelines for Rabies Prophylaxis (2019), p. 7",
+      "url": "https://ncdc.mohfw.gov.in/uploads/resource/1769332447_National-Guidelines-for-Rabies-Prophylaxis.pdf",
+      "accessed": "2026-10-01",
+      "verified": true
+    }
+  ]
+}

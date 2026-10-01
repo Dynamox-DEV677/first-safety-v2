@@ -17,7 +17,8 @@ export default function ModeSelector() {
   const bite = useBiteRecord()
   const [lastStep] = useLocalStorage<number>('fs.nowStep', 0)
 
-  const ageMs = bite?.biteAt ? Date.now() - Date.parse(bite.biteAt) : Number.POSITIVE_INFINITY
+  const startedAt = bite?.openedAt || bite?.biteAt
+  const ageMs = startedAt ? Date.now() - Date.parse(startedAt) : Number.POSITIVE_INFINITY
   const complete = Boolean(bite?.completedAt)
   const recent = Number.isFinite(ageMs) && ageMs >= 0 && ageMs < RESUME_WINDOW_MS
   const inProgress = timer.status === 'running' || lastStep > 0

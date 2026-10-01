@@ -5,6 +5,7 @@ import { useTheme, type Theme } from '../hooks/useTheme'
 import { REMINDER_KEY, type ReminderSettings } from '../hooks/useVaccine'
 import EmergencyContactFields from './EmergencyContactFields'
 import VoiceSettings from './VoiceSettings'
+import { ONLINE_MATCH_KEY } from '../voice/online'
 import { TIMER_BANNER_KEY, TIMER_KEY, clearWashTimer } from '../hooks/useTimer'
 
 const THEMES: { id: Theme; label: string }[] = [
@@ -16,6 +17,7 @@ const THEMES: { id: Theme; label: string }[] = [
 export default function Settings() {
   const [theme, setTheme] = useTheme()
   const [reminders, setReminders] = useLocalStorage<ReminderSettings>(REMINDER_KEY, { enabled: false, lastNotified: '' })
+  const [online, setOnline] = useLocalStorage<boolean>(ONLINE_MATCH_KEY, false)
   const [permission, setPermission] = useState<string>(() =>
     'Notification' in window ? Notification.permission : 'unsupported',
   )
@@ -116,10 +118,25 @@ export default function Settings() {
       </p>
       <VoiceSettings />
 
+      <h3 className="h3">Online help for unclear answers</h3>
+      <p className="body">
+        Off unless you turn it on. When the app cannot tell what you said or typed, it asks an online service to pick
+        from the same buttons, for 2.5 seconds at most. Only those words are sent - never your report, never audio.
+        Offline, or if it is slow, the app simply shows the buttons.
+      </p>
+      <div className="seg" role="group" aria-label="Online help">
+        <button type="button" className={`btn ${online ? 'on' : ''}`} aria-pressed={online} onClick={() => setOnline(true)}>
+          On
+        </button>
+        <button type="button" className={`btn ${!online ? 'on' : ''}`} aria-pressed={!online} onClick={() => setOnline(false)}>
+          Off
+        </button>
+      </div>
+
       <h2 className="h2">Your data</h2>
       <p className="body">
-        No account, no analytics, no server. Everything - progress, scores, bookmarks, contacts, the vaccine record
-        and the medical profile - stays on this phone and is never uploaded. Resetting deletes all of it (voice files are
+        No account, no analytics. Everything - progress, scores, bookmarks, contacts, the vaccine record, the
+        medical profile and every incident record - stays on this phone and is never uploaded. Resetting deletes all of it (voice files are
         removed separately above).
       </p>
       <button type="button" className="btn" onClick={resetAll}>

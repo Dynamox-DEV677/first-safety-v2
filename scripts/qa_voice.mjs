@@ -137,7 +137,7 @@ async function main() {
   const stateA = await waitFor(`document.querySelector('[data-voice]')?.dataset.voice`, 10000, 'voice state')
   await sleep(1500)
   const cachesA = await caches()
-  console.log(JSON.stringify(['A fresh emergency path', 'voice', stateA, 'caches', Object.keys(cachesA), 'hosts since A', hostSummary(tA), 'button disabled', await evaluate(`document.querySelector('.voice-btn')?.disabled`)]))
+  console.log(JSON.stringify(['A fresh emergency path', 'voice', stateA, 'caches', Object.keys(cachesA), 'hosts since A', hostSummary(tA), 'no-model line', await evaluate(`document.querySelector('.voice-note')?.textContent ?? ''`), 'type box', await evaluate(`!!document.querySelector('#what-happened')`)]))
   await shot('v2-voice-notready-360.png')
 
   // B. Opt in from Settings.
@@ -146,7 +146,7 @@ async function main() {
   await evaluate(`document.querySelector('[data-voice-settings]')?.scrollIntoView()`)
   const stateB0 = await waitFor(`document.querySelector('[data-voice-settings]')?.dataset.voiceSettings`, 10000, 'settings state')
   await shot('v2-voice-settings-before.png')
-  await evaluate(`[...document.querySelectorAll('button')].find(b => /^Prepare voice/.test(b.textContent.trim())).click()`)
+  await evaluate(`[...document.querySelectorAll('button')].find(b => /^Download voice input/.test(b.textContent.trim())).click()`)
   const stateB1 = await waitFor(`(() => { const s = document.querySelector('[data-voice-settings]')?.dataset.voiceSettings; return s === 'ready' || s === 'error' ? s : null; })()`, 8 * 60_000, 'download')
   await sleep(1000)
   const cachesB = await caches()
@@ -179,8 +179,8 @@ async function main() {
   if (c.state === 'done' && c.record?.animal) {
     await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Looks right').click()`)
     await sleep(400)
-    console.log(JSON.stringify(['C looks right', location_hash = await evaluate('location.hash'), 'areas on screen', await evaluate(`[...document.querySelectorAll('[aria-pressed=true]')].map(b => b.textContent.trim())`)]))
-    await shot('v2-voice-area-prefilled.png')
+    console.log(JSON.stringify(['C looks right', location_hash = await evaluate('location.hash'), 'record', await evaluate(`(({animal, site, contact, bleeding}) => ({animal, site, contact, bleeding}))(JSON.parse(localStorage.getItem('fs.biteRecord')))`)]))
+    await shot('v2-voice-facts-prefilled.png')
   }
 
   // D. The network cut: the app, the model and the runtime must all come from the phone.

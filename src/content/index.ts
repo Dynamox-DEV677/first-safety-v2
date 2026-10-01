@@ -13,6 +13,7 @@
  * diagnosis - a phone that gets it wrong either sends someone home to die or floods a clinic.
  */
 import common from '../../content/common.json'
+import situations from '../../content/situations.json'
 import dog from '../../content/animals/dog.json'
 import cat from '../../content/animals/cat.json'
 import monkey from '../../content/animals/monkey.json'
@@ -49,6 +50,17 @@ export const ANIMALS: Record<AnimalId, AnimalContent> = {
 export const ANIMAL_ORDER: AnimalId[] = ['dog', 'cat', 'monkey', 'rodent', 'bat', 'mongoose', 'livestock', 'human']
 
 export const COMMON: Sourced[] = common.notes
+
+/**
+ * Lines shown only when the recorded facts make them relevant: the bite site, a late start, saliva
+ * in the eyes, nose or mouth, or something put on the wound. Selection is by fact, never by grade.
+ */
+export const SITUATION = {
+  site: situations.site as Sourced[],
+  late: situations.late as Sourced[],
+  mucosa: situations.mucosa as Sourced[],
+  applied: situations.applied as Sourced[],
+}
 
 /** Shown in place of any string whose verified flag is false. Keep this wording. */
 export const GATE_MESSAGE = "This step hasn't been reviewed yet, so it isn't shown. Wash the wound and go to a hospital today."

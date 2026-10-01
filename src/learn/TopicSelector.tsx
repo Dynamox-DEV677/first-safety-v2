@@ -4,6 +4,7 @@ import { faqs } from '../data/faq'
 import { href } from '../hooks/useRoute'
 import { useLearnProgress } from '../hooks/useLearnProgress'
 import { useScores } from '../hooks/useScores'
+import VoiceOffer from '../components/VoiceOffer'
 
 export default function TopicSelector() {
   const p = useLearnProgress()
@@ -13,6 +14,8 @@ export default function TopicSelector() {
     <div className="page-main">
       <p className="eyebrow">Learn</p>
       <h1 className="title">Myths and facts</h1>
+
+      <VoiceOffer />
 
       <div className="stats" aria-label="Your progress">
         <div className="stat">

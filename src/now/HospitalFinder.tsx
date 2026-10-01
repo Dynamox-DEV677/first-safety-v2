@@ -36,7 +36,7 @@ export default function HospitalFinder() {
       <div className="stack" style={{ marginTop: 12 }}>
         <CallContacts />
         <a className="btn btn-solid" href={href('/report')}>
-          Show this to the doctor
+          I&rsquo;m at the clinic &mdash; show the record
         </a>
       </div>
 
@@ -92,16 +92,15 @@ export default function HospitalFinder() {
         </p>
       )}
       <AnimalNotes />
+      {/* The WHO category table used to be here. It invited a frightened person to grade their own
+          bite ("No vaccine needed"), which is the clinician's call (v2 brief, §6). The record below
+          hands the clinician the facts instead. */}
       <p className="body">{exposureCategories.intro}</p>
-      {exposureCategories.items.map((c) => (
-        <div className="cat" key={c.cat}>
-          <b className="roman">{c.cat}</b>
-          <div>
-            <p>{c.what}</p>
-            <p className="act">{c.action}</p>
-          </div>
-        </div>
-      ))}
+      <div className="stack" style={{ margin: '0 0 16px' }}>
+        <a className="btn btn-solid" href={href('/report')}>
+          I&rsquo;m at the clinic &mdash; show the record
+        </a>
+      </div>
       <CommonNotes />
       <SourceNote ids={['WHO_TRS', 'WHO_FS', 'NCDC_2019', 'GOI_112']} />
 

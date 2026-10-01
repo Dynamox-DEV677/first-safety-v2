@@ -31,7 +31,7 @@ export default function StepCard({ step, triageNote }: Props) {
       {isHospitalStep && (
         <div className="stack" style={{ margin: '0 0 20px' }}>
           <a className="btn btn-solid" href={href('/report')}>
-            Show this to the doctor
+            I&rsquo;m at the clinic &mdash; show the record
           </a>
         </div>
       )}

@@ -20,23 +20,23 @@ interface Props {
 export default function EntryScreen({ resumeStep }: Props) {
   const timer = useTimer()
 
-  const fresh = () => {
+  const fresh = (via: 'wash' | 'tell') => {
     // A new incident. Clearing the wash timer first is what stops a finished timer from an
     // earlier session showing the wash step as already "done".
     clearWashTimer()
-    startBiteRecord()
+    startBiteRecord(via)
     writeLS('fs.nowStep', 0)
     writeLS('fs.triage', null)
   }
 
   const startWashing = () => {
-    fresh()
+    fresh('wash')
     timer.start()
     navigate('/now/step/1')
   }
 
   const tell = () => {
-    fresh()
+    fresh('tell')
     navigate('/now/animal')
   }
 

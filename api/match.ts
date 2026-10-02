@@ -17,7 +17,12 @@
  */
 
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/interactions'
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash'
+/**
+ * Tried in order while the time budget lasts: a busy (429/5xx) or unreachable model hands over to
+ * the next. Flash-Lite first - picking an animal from a short sentence needs speed, not depth.
+ */
+export const MODELS = [...new Set([process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite', 'gemini-3.8-flash'])]
+const MIN_ATTEMPT_MS = 500
 /** The phone gives up at 2.5 s, so the upstream call gets less than that. */
 const UPSTREAM_TIMEOUT_MS = 2000
 const MAX_TEXT = 300
@@ -134,13 +139,30 @@ async function callModel(key: string, text: string): Promise<Match | null> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Goog-Api-Key': key }
   // A key restricted to the app's domain (HTTP referrer restriction) needs the referrer sent.
   if (process.env.GEMINI_REFERER) headers.referer = process.env.GEMINI_REFERER
+  for (const model of MODELS) {
+    const left = UPSTREAM_TIMEOUT_MS - (Date.now() - started)
+    if (left < MIN_ATTEMPT_MS) break
+    const outcome = await attempt(model, text, headers, started, left)
+    if (outcome !== 'busy') return outcome
+  }
+  return null
+}
+
+/** One call to one model. 'busy' (429, 5xx, network) hands over to the next model while time lasts. */
+async function attempt(
+  model: string,
+  text: string,
+  headers: Record<string, string>,
+  started: number,
+  left: number,
+): Promise<Match | null | 'busy'> {
   try {
     const r = await fetch(ENDPOINT, {
       method: 'POST',
       headers,
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+      signal: AbortSignal.timeout(left),
       body: JSON.stringify({
-        model: MODEL,
+        model,
         store: false,
         system_instruction: SYSTEM,
         input: `Description: """${text}"""`,
@@ -156,29 +178,30 @@ async function callModel(key: string, text: string): Promise<Match | null> {
       } catch {
         // no error body
       }
-      note('upstream', started, { status: r.status, code })
-      return null
+      note('upstream', started, model, { status: r.status, code })
+      return r.status === 429 || r.status >= 500 ? 'busy' : null
     }
     const data = (await r.json()) as Record<string, unknown>
     const raw = extractText(data)
     if (!raw) {
-      note('shape', started, { keys: Object.keys(data ?? {}), steps: describeSteps(data) })
+      note('shape', started, model, { keys: Object.keys(data ?? {}), steps: describeSteps(data) })
       return null
     }
     const parsed = JSON.parse(raw) as Record<string, unknown>
     const match = validate(parsed)
     // Categories only - never the words. "unclear" or low confidence is a normal fallback, not an error.
-    if (!match) note('no-match', started, { keys: Object.keys(parsed ?? {}), animal: parsed?.animal, site: parsed?.site, confidence: parsed?.confidence })
+    if (!match) note('no-match', started, model, { keys: Object.keys(parsed ?? {}), animal: parsed?.animal, site: parsed?.site, confidence: parsed?.confidence })
     return match
   } catch (e) {
-    note('error', started, { name: e instanceof Error ? e.name : typeof e, message: e instanceof Error ? e.message.slice(0, 160) : '' })
-    return null
+    const name = e instanceof Error ? e.name : typeof e
+    note('error', started, model, { name, message: e instanceof Error ? e.message.slice(0, 160) : '' })
+    return name === 'TimeoutError' || name === 'AbortError' ? null : 'busy'
   }
 }
 
 /** One short line in the function log. Never includes the text that was sent. */
-function note(at: string, started: number, info: Record<string, unknown>): void {
-  console.error(JSON.stringify({ at, ms: Date.now() - started, model: MODEL, ...info }))
+function note(at: string, started: number, model: string, info: Record<string, unknown>): void {
+  console.error(JSON.stringify({ at, ms: Date.now() - started, model, ...info }))
 }
 
 function describeSteps(data: Record<string, unknown>): string[] | null {

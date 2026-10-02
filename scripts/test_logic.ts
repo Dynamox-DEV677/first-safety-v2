@@ -113,6 +113,17 @@ async function apiTests() {
   }
 
   api.resetRateLimits()
+  const tried: string[] = []
+  useFake(async (_url, init) => {
+    const model = String(JSON.parse(String(init.body)).model)
+    tried.push(model)
+    return tried.length === 1 ? new Response(JSON.stringify({ error: { status: 'UNAVAILABLE' } }), { status: 503 }) : modelReply(good)
+  })
+  const fb = await post({ text: 'street kutta bit my hand' })
+  check('api: first model busy -> next model answers -> 200', fb.status === 200 && tried.length === 2 && tried[0] !== tried[1], { status: fb.status, tried })
+  check('api: Flash-Lite tried first', tried[0] === api.MODELS[0] && /flash-lite/.test(api.MODELS[0]), api.MODELS)
+
+  api.resetRateLimits()
   useFake(async () => new Response('quota', { status: 429 }))
   check('api: upstream error -> 204', (await post({ text: 'dog bite' })).status === 204)
 

@@ -59,7 +59,7 @@ export const steps: Step[] = [
     id: 3,
     title: 'Do not close the wound',
     instruction: 'Do not stitch, tape or bandage it tightly. Leave it open, or cover it loosely with a clean cloth.',
-    detail: 'Closing a bite traps the virus and bacteria inside. If stitches are ever needed, a doctor does that later, after the immunoglobulin injection.',
+    detail: 'Closing a bite traps the virus and bacteria inside. If stitches are ever needed, a doctor does that later.',
     donts: ['No tight bandage.', 'No glue, tape or stitches.'],
     critical: true,
     sources: ['NCDC_2019', 'WHO_TRS'],
@@ -91,7 +91,7 @@ export const steps: Step[] = [
     title: 'Go to a hospital today',
     instruction: 'You need the anti-rabies vaccine today. Go to the nearest government hospital or Anti-Rabies Clinic.',
     detail:
-      'The vaccine is called post-exposure prophylaxis (PEP). Deep bites also need rabies immunoglobulin injected around the wound - the doctor decides. Do not wait to see whether the animal gets sick.',
+      'The vaccine is called post-exposure prophylaxis (PEP). Do not wait to see whether the animal gets sick.',
     mythBuster: {
       myth: '"The dog looked healthy, so I do not need the vaccine."',
       fact: 'An animal can spread rabies for days before it looks sick. Start the vaccine today. If a dog or cat can be watched and is still healthy after 10 days, the doctor may stop the course - but only the doctor decides that.',

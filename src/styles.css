@@ -129,7 +129,8 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .hdr-link { font-size: 0.95rem; color: var(--muted); text-decoration: none; min-height: 64px; display: inline-flex; align-items: center; }
 .minibar { display: block; background: var(--red-deep); color: var(--on-red); text-decoration: none; }
 .minibar-in { display: flex; justify-content: space-between; align-items: center; min-height: 64px; font-weight: 700; }
-.minibar-time { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1.25rem; }
+.minibar-time { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1.15rem; white-space: nowrap; }
+.minibar-link > span:first-child { line-height: 1.2; }
 
 /* ---- bottom nav ---- */
 .bnav {

@@ -10,22 +10,6 @@
       "url": "https://www.who.int/news-room/fact-sheets/detail/rabies",
       "accessed": "2026-09-29",
       "verified": true
-    },
-    {
-      "id": "bat.trs",
-      "text": "Any direct contact with a bat is treated as a category III exposure.",
-      "source": "WHO — Expert Consultation on Rabies, TRS 1012 (2018)",
-      "url": "https://www.who.int/publications/i/item/WHO-TRS-1012",
-      "accessed": "2026-09-03",
-      "verified": true
-    },
-    {
-      "id": "bat.ncdc",
-      "text": "Bat rabies: Bat rabies has not been conclusively proved in India and hence, at present, exposure to bats does not warrant PEP.",
-      "source": "NCDC India — National Guidelines on Rabies Prophylaxis (2015)",
-      "url": "https://clinicalestablishments.mohfw.gov.in/sites/default/files/standard-treatment-guidelines/238.pdf",
-      "accessed": "2026-09-29",
-      "verified": true
     }
   ]
 }

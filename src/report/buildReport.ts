@@ -34,7 +34,7 @@ export const L = {
   GENERATED: { en: 'Generated', hi: 'बनाया गया' },
   TIME_OF_BITE: { en: 'TIME OF BITE', hi: 'काटने का समय' },
   WASH_STARTED: { en: 'WASHING STARTED', hi: 'धुलाई शुरू हुई' },
-  WASH_DURATION: { en: 'WASHING DURATION', hi: 'धुलाई कितनी देर' },
+  WASH_DURATION: { en: 'WASHING DURATION', hi: 'धुलाई की अवधि' },
   ANIMAL: { en: 'ANIMAL', hi: 'जानवर' },
   KNOWN_STRAY: { en: 'KNOWN / STRAY', hi: 'पहचाना हुआ / आवारा' },
   ANIMAL_VACCINATED: { en: 'ANIMAL VACCINATED', hi: 'जानवर को टीका लगा है' },

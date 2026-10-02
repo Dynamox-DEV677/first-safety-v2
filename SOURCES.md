@@ -40,12 +40,9 @@ one year, depending on factors such as the location of virus entry and the viral
 the facts screen once the bite site is known.
 
 **NCDC 2015** — do not apply chillies, mustard oil or any other irritant; wash with plenty of soap
-and water; do not dress or stitch; suturing to be avoided and delayed if unavoidable; cauterization
-no longer recommended; the 10-day observation period is valid for dogs and cats only and not
-applicable to other mammals; in India dogs cause about 97% of human rabies, cats 2%, jackals,
-mongoose and others 1%; bites by all wild animals treated as category III; domestic rodents,
-squirrels, hares and rabbits do not ordinarily require PEP; bat rabies not conclusively proved in
-India and exposure to bats does not at present warrant PEP.
+and water; do not dress or stitch; cauterization no longer recommended; the 10-day observation
+period is valid for dogs and cats only and not applicable to other mammals; in India dogs cause about
+97% of human rabies, cats 2%, jackals, mongoose and others 1%.
 
 **NCDC 2015, Annexure 2 — "Proforma for management of animal bite case at an antirabies
 centre/clinic (ARC)"** (2026-10-01). This is the clinic's own intake form, and the handover report
@@ -76,17 +73,34 @@ facts screen when the answers make them relevant:
 
 Page numbers are the printed ones; the PDF runs ten pages ahead (printed p. 6 is PDF page 16).
 
-**WHO TRS 1012 (2026-09-03)** — any direct contact with a bat treated as category III (shown, with
-NCDC's disagreement, in the bat notes).
+**WHO TRS 1012 (2026-09-03)** — read for v1; nothing from it is shown in v2 (see the next section).
 
 **ICMR-NIE 2022–23 (2026-09-07)** — 9.1 million animal bites and 5,726 rabies deaths a year in
 India; 79.5% of dog-bite victims received at least one vaccine dose, about 40% completed the course,
 about 5% received immunoglobulin.
 
+## Read, and deliberately not shown to the patient
+
+These lines are accurate and verbatim, and they matter to a clinician. They are kept out of the app
+because each one either tells the person their WHO exposure category or tells them whether they
+need treatment, the line the v2 brief (§6) says the app must never cross. Two of them would tell a
+frightened person the vaccine is not needed. That is the clinician's decision, made with the patient
+in front of them.
+
+- WHO TRS 1012: "Any direct contact with a bat is treated as a category III exposure."
+- NCDC 2015: "Bat rabies has not been conclusively proved in India and hence, at present, exposure to
+  bats does not warrant PEP."
+- NCDC 2015: "Exposure to domestic rodents, squirrel, hare and rabbits do not ordinarily require PEP."
+- NCDC 2015: "Bite by all wild animals should be treated as category III exposure."
+- NCDC 2015: "Suturing of wound(s) should be avoided as far as possible. If surgically unavoidable,
+  after adequate cleansing, rabies immunoglobulin should be infiltrated …" (the patient-facing part,
+  "Do not get the wound stitched", is shown).
+- NCDC 2019 p. 7: "A bleeding wound at any site indicates severe exposure and should be infiltrated
+  with RIG."
+
 ## Where sources disagree
 
-The app shows both statements verbatim and does not choose. That decision belongs to the clinician
-with the patient in front of them.
+Neither statement below is shown: both are category or treatment decisions (see above).
 
 - **Bats.** WHO TRS 1012 treats any direct contact with a bat as category III. NCDC India (2015)
   states bat rabies has not been conclusively proved in India and exposure to bats does not at

@@ -7,6 +7,8 @@
 
 **First aid for animal bites that works with no signal, and hands the clinic the facts.**
 
+Try it: **https://first-safety.vercel.app** (add it to your home screen, then switch on aeroplane mode).
+
 ### What it refuses to do
 
 First Safety does not diagnose. It does not tell you your WHO exposure category, how likely rabies

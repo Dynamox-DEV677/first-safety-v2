@@ -23,7 +23,7 @@ headless Chrome from a clean profile. Re-run any time with the commands at the b
 | ✅ | All instruction text ≥ 7:1 contrast, both themes | Pass on 13 screens × 2 themes | Lowest: 8.59 (light), 7.44 (dark). Excluded as not instruction text: the timer digits (numbers), the entry footnote (the brief specifies `--ink-3`) and the entry label. |
 | ✅ | No horizontal scroll and no nested scrollers at 360px | Pass at 360 / 390 / 414 | The six-site screen fits without scrolling at 360×740. |
 | ✅ | Buttons ≥ 64px tall | Pass | No tap target under 64px on any checked screen; entry buttons 132px, site buttons 84px. |
-| ⬜ | Tested on a real cheap Android, outdoors, in sunlight | **Yours, 4 Oct** | Needs a deployed URL. |
+| ⬜ | Tested on a real cheap Android, outdoors, in sunlight | **Yours, 4 Oct** | Live at first-safety.vercel.app. Step-by-step list and QR code: `docs/PHONE-TEST.md`, `docs/first-safety-qr.png`. |
 
 ## Decisions to know about
 
@@ -45,9 +45,11 @@ headless Chrome from a clean profile. Re-run any time with the commands at the b
 
 - **Hindi labels** on the record (`src/report/buildReport.ts`, `L`) are a draft and need a
   native speaker's eye.
-- **One v1 line sits close to §6's rule:** step 6 says "Deep bites also need rabies immunoglobulin
-  injected around the wound - the doctor decides." It describes a rule, not this patient, and it
-  is v1 medical text, so it was not edited here. Decide whether to keep it.
+- (Done 2 Oct) Removed from the emergency path because they decide treatment or category: the step-6
+  sentence about deep bites needing immunoglobulin, the step-3 clause "after the immunoglobulin
+  injection", and five sourced notes (bat ×2, rodent, wild animals, suturing). They are listed in
+  `SOURCES.md` under "Read, and deliberately not shown". Nothing was reworded; text was only
+  removed.
 
 ## Commands
 

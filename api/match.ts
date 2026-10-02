@@ -8,7 +8,8 @@
  *
  * Key handling: GEMINI_API_KEY lives only in Vercel -> Project -> Settings -> Environment Variables.
  * Never in the repo, never in the client bundle. Requests are sent with store=false so Google does
- * not keep them. Nothing is logged. Rate limited per IP and per instance.
+ * not keep them. The words are never logged - only, when something fails, which step failed, the
+ * upstream status or error code, and the time taken. Rate limited per IP and per instance.
  *
  * DELETE IN FIVE MINUTES: remove this file, src/voice/online.ts, src/voice/onlineSchema.ts, the
  * "Online help" block in Settings and the one call in src/now/VoiceInput.tsx. The app is complete
@@ -129,6 +130,7 @@ function reply(status: number, body: unknown): Response {
 }
 
 async function callModel(key: string, text: string): Promise<Match | null> {
+  const started = Date.now()
   const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Goog-Api-Key': key }
   // A key restricted to the app's domain (HTTP referrer restriction) needs the referrer sent.
   if (process.env.GEMINI_REFERER) headers.referer = process.env.GEMINI_REFERER
@@ -146,13 +148,46 @@ async function callModel(key: string, text: string): Promise<Match | null> {
         generation_config: { temperature: 0, thinking_level: 'low' },
       }),
     })
-    if (!r.ok) return null
-    const raw = extractText(await r.json())
-    if (!raw) return null
-    return validate(JSON.parse(raw))
-  } catch {
+    if (!r.ok) {
+      let code = ''
+      try {
+        const e = (await r.json()) as { error?: { status?: string; message?: string } }
+        code = `${e.error?.status ?? ''} ${String(e.error?.message ?? '').slice(0, 160)}`.trim()
+      } catch {
+        // no error body
+      }
+      note('upstream', started, { status: r.status, code })
+      return null
+    }
+    const data = (await r.json()) as Record<string, unknown>
+    const raw = extractText(data)
+    if (!raw) {
+      note('shape', started, { keys: Object.keys(data ?? {}), steps: describeSteps(data) })
+      return null
+    }
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const match = validate(parsed)
+    // Categories only - never the words. "unclear" or low confidence is a normal fallback, not an error.
+    if (!match) note('no-match', started, { keys: Object.keys(parsed ?? {}), animal: parsed?.animal, site: parsed?.site, confidence: parsed?.confidence })
+    return match
+  } catch (e) {
+    note('error', started, { name: e instanceof Error ? e.name : typeof e, message: e instanceof Error ? e.message.slice(0, 160) : '' })
     return null
   }
+}
+
+/** One short line in the function log. Never includes the text that was sent. */
+function note(at: string, started: number, info: Record<string, unknown>): void {
+  console.error(JSON.stringify({ at, ms: Date.now() - started, model: MODEL, ...info }))
+}
+
+function describeSteps(data: Record<string, unknown>): string[] | null {
+  if (!Array.isArray(data?.steps)) return null
+  return (data.steps as Record<string, unknown>[]).map((s) => {
+    const c = s?.content
+    const kinds = Array.isArray(c) ? c.map((p) => (p as Record<string, unknown>)?.type).join('/') : typeof c
+    return `${String(s?.type)}:${kinds}`
+  })
 }
 
 export async function POST(request: Request): Promise<Response> {

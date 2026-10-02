@@ -211,9 +211,19 @@ node scripts/qa_timer_v2.mjs http://localhost:4180/   # timer through a frozen (
 
 ## Deploy (Vercel)
 
-Import the repo in Vercel or run `vercel` in this folder. `vercel.json` sets the Vite framework,
-`dist` output and no-cache headers for `sw.js`; `api/match.ts` deploys as a serverless function and
-answers 503 (the app falls back) until a key is set. Every push to `main` redeploys.
+Live at https://first-safety.vercel.app (the existing `first-safety` project; v2 replaced v1 on
+2 Oct 2026 — v1's deployments stay in the project's history for an instant rollback).
+`vercel.json` sets the Vite framework, `dist` output, no-cache headers for `sw.js`, and runs the
+function in Mumbai (`bom1`). `api/match.ts` answers 503 until `GEMINI_API_KEY` is set, and the app
+falls back silently.
+
+Deploy from a git-free copy of the committed code, because Vercel blocks deploys whose git commit
+author email is not on the Vercel account:
+
+```bash
+rm -rf ../deploy-v2 && mkdir -p ../deploy-v2/.vercel && git archive HEAD | tar -x -C ../deploy-v2
+cp .vercel/project.json ../deploy-v2/.vercel/ && cd ../deploy-v2 && vercel deploy --prod --yes
+```
 
 ## Layout
 

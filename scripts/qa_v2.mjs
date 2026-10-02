@@ -90,14 +90,14 @@ setLS('fs.timer', null);
 await go('#/'); await sleep(200);
 document.querySelector('.entry-btn.grey').click(); await sleep(400);
 log.push(['T1 picker', location.hash, 'startedVia', ls('fs.biteRecord')?.startedVia, 'voice state', document.querySelector('[data-voice]')?.dataset.voice, 'no-model line', txt('.voice-note') || '(none)']);
-const typeIt = async (words) => { let i = null; for (let k = 0; k < 40 && !i; k++) { i = document.querySelector('#what-happened'); if (!i) await sleep(100); } if (!i) throw new Error('no type box on ' + location.hash + ' voice=' + document.querySelector('[data-voice]')?.dataset.voice); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(i, words); i.dispatchEvent(new Event('input', { bubbles: true })); await sleep(80); document.querySelector('.type-box button[type=submit]').click(); await sleep(400); };
+const typeIt = async (words) => { let i = null; for (let k = 0; k < 40 && !i; k++) { i = document.querySelector('#what-happened'); if (!i) await sleep(100); } if (!i) throw new Error('no type box on ' + location.hash + ' voice=' + document.querySelector('[data-voice]')?.dataset.voice); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(i, words); i.dispatchEvent(new Event('input', { bubbles: true })); await sleep(80); document.querySelector('.type-box button[type=submit]').click(); await sleep(300); for (let k = 0; k < 60 && document.querySelector('[data-voice=working]'); k++) await sleep(100); await sleep(150); };
 await typeIt('street kutta bit my leg, khoon aa raha hai');
 log.push(['T2 typed', 'heard', txt('.voice-heard'), 'chips', [...document.querySelectorAll('.chip')].map(c => c.textContent), 'record', (({animal, site, contact, bleeding}) => ({animal, site, contact, bleeding}))(ls('fs.biteRecord'))]);
 clickText(/^Looks right$/); await sleep(300);
 log.push(['T3 site known -> facts screen', location.hash]);
 await go('#/now/animal'); await sleep(300);
 await typeIt('a cat or a rat, not sure');
-log.push(['T4 ambiguous -> narrowed taps', txt('[data-voice=done] .body'), [...document.querySelectorAll('[data-voice=candidates] .btn')].map(b => b.textContent)]);
+log.push(['T4 ambiguous', 'narrowed taps', [...document.querySelectorAll('[data-voice=candidates] .btn')].map(b => b.textContent), 'or online pick', [...document.querySelectorAll('.chip')].map(c => c.textContent), 'prompt', txt('[data-voice=done] .body') || (btn(/^Looks right$/) ? 'Looks right' : '')]);
 clickText(/^Try again$/); await sleep(200);
 await typeIt('we reached the hospital');
 await sleep(300);
@@ -279,7 +279,7 @@ async function main() {
     let worst = []
     for (const [name, hash] of screens) {
       await open(hash)
-      const c = await evaluate(`(() => { ${HELPERS.replace('const log = [];', '')}; return contrast('.entry-note, .entry-brand, .timer-digits, .src a, .ftr'); })()`)
+      const c = await evaluate(`(() => { ${HELPERS.replace('const log = []; window.__qaLog = log;', '')}; return contrast('.entry-note, .entry-brand, .timer-digits, .src a, .ftr'); })()`)
       res[name] = c.failCount ? `${c.min} (${c.failCount} < 7)` : `ok, min ${c.min}`
       if (c.failCount) worst.push([name, c.fails])
     }

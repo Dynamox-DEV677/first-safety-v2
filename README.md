@@ -12,8 +12,10 @@ and the date it was read.
   immunoglobulin. That is a clinician's call, made with the patient in front of them; a phone that
   gets it wrong either sends someone home to die or floods a clinic.
 - **No AI writes anything you read.** Not a step, not a warning, not a word of the report.
-- **Nothing leaves the phone.** No account, no analytics, no server for your data. The handover
-  record is never uploaded; copy, share and read-aloud each start from your own tap.
+- **Your data stays on the phone.** No account, no analytics, no server for your data. The handover
+  record is never uploaded; copy, share and read-aloud each start from your own tap. The one thing
+  that can leave is a few typed or spoken words the app couldn't place, sent to the optional online
+  matcher (on by default, one switch in Settings to turn off).
 
 ## What it does
 
@@ -153,9 +155,10 @@ nextQuestion}`, validated on the server and again on the phone; anything outside
 confidence below 0.75, any error or a reply slower than 2.5 seconds, and the app falls back to its
 own tap list without telling anyone. It never writes a word the user reads.
 
-It is **off by default** (Settings → Online help for unclear answers), because it sends the person's
-words — never the report, never audio — to Google. With it off, the app makes no request beyond
-loading itself (checked in `scripts/qa_v2.mjs`).
+It is **on by default** (the owner's decision) and one switch turns it off: Settings → Online help
+for unclear answers. It sends only the person's words — never the report, never audio — and the
+screen says so under the type box. `scripts/qa_v2.mjs` checks that the only request that ever
+leaves is `POST /api/match` carrying `{text}`; with the switch off, there is none.
 
 To turn it on for a deployment:
 

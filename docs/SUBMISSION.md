@@ -39,11 +39,12 @@ It washes, it times, it records, it hands over.
 ### Offline is the app
 
 It is built for a clinic waiting room with one bar of signal. Everything runs on the phone: no
-account, no server for anyone's data, nothing uploaded. Voice input runs a small speech model
+account, no server for anyone's data, and the record never leaves the device. Voice input runs a small speech model
 (Whisper tiny) on the phone itself, and it is only downloaded when someone chooses to, on the calm
 LEARN side, never during an emergency. Typing works without it, in English, Hinglish, Hindi or
 Tamil spellings. There is an optional online helper for words the app can't place, bounded to 2.5
-seconds and a fixed set of answers. It is off by default and the app is complete without it.
+seconds and a fixed set of answers. It sends only those words, the screen says so, one switch
+turns it off, and the app is complete without it.
 
 ### Sources
 

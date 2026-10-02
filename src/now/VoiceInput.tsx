@@ -13,7 +13,7 @@ import {
   type Recording,
 } from '../voice'
 import { matchTranscript, type VoiceMatch } from '../voice/match'
-import { askOnlineMatcher } from '../voice/online'
+import { askOnlineMatcher, onlineMatchEnabled } from '../voice/online'
 
 type Phase = 'checking' | 'no-voice' | 'not-ready' | 'ready' | 'recording' | 'working' | 'done' | 'error'
 
@@ -174,6 +174,11 @@ export default function VoiceInput({ onNotMammal }: Props) {
           Use
         </button>
       </div>
+      {onlineMatchEnabled() && (
+        <p className="small" style={{ marginTop: 8 }}>
+          If the app can&rsquo;t tell what you mean, just these words may be checked online. Settings &rarr; Online help.
+        </p>
+      )}
     </form>
   )
 

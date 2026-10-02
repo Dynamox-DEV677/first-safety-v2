@@ -9,6 +9,7 @@ import { buildIncidentRecord, recordSpeech, recordText, type RecordInput } from 
 import { emptyBite, type BiteRecord } from '../src/data/bite'
 import { EMPTY_MEDICAL } from '../src/hooks/useMedical'
 import * as api from '../api/match'
+import { onlineMatchEnabled } from '../src/voice/online'
 
 let passed = 0
 const failures: string[] = []
@@ -62,6 +63,8 @@ const m = (t: string) => matchTranscript(t)
   check('schema: unclear site -> null site', validateMatch({ ...good, site: 'unclear' })?.site === null)
   check('schema: string confidence rejected', validateMatch({ ...good, confidence: '0.9' }) === null)
 }
+
+check('online help is on by default (nothing stored)', onlineMatchEnabled() === true)
 
 // ---------------------------------------------------------------- serverless function, fake Gemini
 const realFetch = globalThis.fetch

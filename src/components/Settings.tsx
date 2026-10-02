@@ -17,7 +17,7 @@ const THEMES: { id: Theme; label: string }[] = [
 export default function Settings() {
   const [theme, setTheme] = useTheme()
   const [reminders, setReminders] = useLocalStorage<ReminderSettings>(REMINDER_KEY, { enabled: false, lastNotified: '' })
-  const [online, setOnline] = useLocalStorage<boolean>(ONLINE_MATCH_KEY, false)
+  const [online, setOnline] = useLocalStorage<boolean>(ONLINE_MATCH_KEY, true)
   const [permission, setPermission] = useState<string>(() =>
     'Notification' in window ? Notification.permission : 'unsupported',
   )
@@ -120,9 +120,10 @@ export default function Settings() {
 
       <h3 className="h3">Online help for unclear answers</h3>
       <p className="body">
-        Off unless you turn it on. When the app cannot tell what you said or typed, it asks an online service to pick
-        from the same buttons, for 2.5 seconds at most. Only those words are sent - never your report, never audio.
-        Offline, or if it is slow, the app simply shows the buttons.
+        On by default. When the app cannot tell what you said or typed, it sends just those words to Google&rsquo;s
+        Gemini, which may only pick from the same buttons, for 2.5 seconds at most. Never your report, never audio,
+        nothing else. Offline, or if it is slow, the app simply shows the buttons. Turn it off to keep everything on
+        this phone.
       </p>
       <div className="seg" role="group" aria-label="Online help">
         <button type="button" className={`btn ${online ? 'on' : ''}`} aria-pressed={online} onClick={() => setOnline(true)}>
@@ -136,8 +137,9 @@ export default function Settings() {
       <h2 className="h2">Your data</h2>
       <p className="body">
         No account, no analytics. Everything - progress, scores, bookmarks, contacts, the vaccine record, the
-        medical profile and every incident record - stays on this phone and is never uploaded. Resetting deletes all of it (voice files are
-        removed separately above).
+        medical profile and every incident record - stays on this phone and is never uploaded. The only thing that can
+        leave it is the few words you type or say when the app cannot place them, while Online help is on. Resetting
+        deletes all of it (voice files are removed separately above).
       </p>
       <button type="button" className="btn" onClick={resetAll}>
         Reset all data

@@ -37,7 +37,7 @@ async function waitForDevtools() {
 
 const HELPERS = String.raw`
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-const log = [];
+const log = []; window.__qaLog = log;
 const txt = (sel) => document.querySelector(sel)?.textContent?.trim();
 const go = async (h) => { location.hash = h; await sleep(200); };
 const btn = (re) => [...document.querySelectorAll('button, a')].find(x => re.test(x.textContent.trim().replace(/\s+/g, ' ')));
@@ -203,7 +203,7 @@ async function main() {
       exceptions++
       console.log('PAGE EXCEPTION:', msg.params.exceptionDetails.text, msg.params.exceptionDetails.exception?.description)
     } else if (msg.method === 'Network.requestWillBeSent') {
-      requests.push({ url: msg.params.request.url, method: msg.params.request.method })
+      requests.push({ url: msg.params.request.url, method: msg.params.request.method, body: msg.params.request.postData ?? '' })
     }
   }
   const send = (method, params = {}) =>
@@ -239,7 +239,10 @@ async function main() {
   await send('Page.navigate', { url })
   await sleep(1500)
 
-  const log = await evaluate(FLOW)
+  const log = await Promise.race([
+    evaluate(FLOW),
+    sleep(240_000).then(async () => [...((await evaluate('window.__qaLog')) ?? []), ['TIMEOUT', await evaluate('location.hash'), await evaluate("document.querySelector('[data-voice]')?.dataset.voice ?? ''")]]),
+  ])
   for (const row of Array.isArray(log) ? log : [log]) print(row)
 
   // ---- a realistic incident for the screenshots and the contrast pass ----
@@ -289,8 +292,10 @@ async function main() {
   const origin = new URL(url).origin
   const foreign = requests.filter((r) => !r.url.startsWith(origin) && !r.url.startsWith('data:') && !r.url.startsWith('blob:') && !r.url.startsWith('chrome'))
   const api = requests.filter((r) => r.url.includes('/api/'))
-  const posts = requests.filter((r) => r.method !== 'GET')
-  print(['NET', 'requests', requests.length, 'to other hosts', foreign.map((r) => r.url).slice(0, 5), 'to /api', api.length, 'non-GET', posts.map((r) => r.method + ' ' + r.url).slice(0, 5)])
+  const posts = requests.filter((r) => r.method !== 'GET' && !r.url.includes('/api/match'))
+  // Online help is on by default: the only thing allowed out is POST /api/match with {text}, nothing else.
+  const apiBodies = api.map((r) => { try { return Object.keys(JSON.parse(r.body)).join(',') } catch { return 'unparsable' } })
+  print(['NET', 'requests', requests.length, 'to other hosts', foreign.map((r) => r.url).slice(0, 5), 'to /api', api.length, 'their bodies carry only', [...new Set(apiBodies)], 'api methods', [...new Set(api.map((r) => r.method))], 'other non-GET', posts.map((r) => r.method + ' ' + r.url).slice(0, 5)])
 
   // ---- §3 offline: network cut, every screen still complete ----
   const swReady = await evaluate(`navigator.serviceWorker.ready.then(() => true)`)

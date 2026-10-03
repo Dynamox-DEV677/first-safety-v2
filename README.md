@@ -180,7 +180,7 @@ drop `&& tsc --noEmit -p tsconfig.api.json` from the build script.
 
 ## Design
 
-The v2 tokens on `:root` (`--paper`, `--ground`, `--ink`, `--red` and friends), Archivo for
+The v2 colour values on `:root` (`--paper`, `--ground`, `--ink`, `--red` and friends), Archivo for
 everything and IBM Plex Mono for clocks, labels and the record — both self-hosted so nothing loads
 from the network. Red means one thing: an urgent action. Red fills that carry words use `--red-deep`
 so every instruction reaches 7:1 contrast in both themes; secondary text is `--ink-2` for the same

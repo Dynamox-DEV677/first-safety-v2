@@ -166,7 +166,8 @@ To turn it on for a deployment:
    require the key holder to be 18 or over).
 2. Vercel → Project → Settings → Environment Variables → `GEMINI_API_KEY`. Never in the repo, never
    in a `.env` that gets committed, never in a screenshot or a chat. `.env.example` holds the empty
-   name only. Optional: `GEMINI_MODEL` (default `gemini-3.8-flash`).
+   name only. Optional: `GEMINI_MODEL` (default `gemini-3.5-flash-lite`; `gemini-3.8-flash` is
+   always tried next when the first is busy).
 3. Google Cloud Console → the key → restrict it to the *Generative Language API* only. If you also
    add an HTTP-referrer restriction, set `GEMINI_REFERER` to your site's URL so the function sends it.
 4. The function rate-limits itself (6 calls a minute per IP, 60 per instance) and sends

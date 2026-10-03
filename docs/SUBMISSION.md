@@ -1,13 +1,15 @@
 # Submission — draft
 
 > A starting point. Rewrite it in your own words before you submit: the judges should hear you,
-> not a template. Every claim below is true of the code in this repo as of 1 Oct 2026.
+> not a template. Every claim below is true of the code in this repo as of 3 Oct 2026.
 
 ## First Safety
 
 **First aid for animal bites that works with no signal, and hands the clinic the facts.**
 
 Try it: **https://first-safety.vercel.app** (add it to your home screen, then switch on aeroplane mode).
+
+Code: **https://github.com/Dynamox-DEV677/first-safety-v2**
 
 ### What it refuses to do
 
@@ -44,25 +46,29 @@ It is built for a clinic waiting room with one bar of signal. Everything runs on
 account, no server for anyone's data, and the record never leaves the device. Voice input runs a small speech model
 (Whisper tiny) on the phone itself, and it is only downloaded when someone chooses to, on the calm
 LEARN side, never during an emergency. Typing works without it, in English, Hinglish, Hindi or
-Tamil spellings. There is an optional online helper for words the app can't place, bounded to 2.5
-seconds and a fixed set of answers. It sends only those words, the screen says so, one switch
-turns it off, and the app is complete without it.
+Tamil spellings. For words the app can't place there is an online helper, on by default, bounded
+to 2.5 seconds and a fixed set of answers. It sends only those words, the screen says so, one
+switch in Settings turns it off, and the app is complete without it.
 
 ### Sources
 
-Every clinical line is traced in [SOURCES.md](../SOURCES.md): the WHO rabies fact sheet, and NCDC
-India's National Guidelines on Rabies Prophylaxis 2015 and 2019. The 2019 edition exists only as a
-scanned PDF, so its pages were read with OCR and every quoted line was checked against the page
-images. Where the two disagree (bats), the app shows both and lets the clinician decide.
+Every clinical line is traced in [SOURCES.md](https://github.com/Dynamox-DEV677/first-safety-v2/blob/main/SOURCES.md):
+the WHO rabies fact sheet, and NCDC India's National Guidelines on Rabies Prophylaxis 2015 and
+2019. The 2019 edition exists only as a scanned PDF, so its pages were read with OCR and every
+quoted line was checked against the page images. Some lines are accurate but would tell a patient
+their exposure category or whether they need treatment (on bats, WHO and NCDC India disagree).
+Those are the clinician's calls, so the app leaves them out, and SOURCES.md lists each one with the
+reason.
 
 ### Tested
 
-There are 70 automated logic tests, plus browser tests at three phone widths that check:
+There are 73 automated logic tests, plus browser tests on a 360-pixel-wide phone screen that check:
 
 - 7:1 text contrast in light and dark themes
 - 64px tap targets
 - every screen working with the network cut
-- no network request leaving the device during a full run
+- nothing leaving the device during a full run except the online helper's lookup, which carries
+  only the typed words
 
 It was also tested on a real Android phone, outdoors. *(Do this on 4 Oct, then keep or edit this
 line.)*

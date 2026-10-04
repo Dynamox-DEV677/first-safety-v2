@@ -78,7 +78,7 @@ export default function VoiceSettings() {
         </div>
         {onMobileData() && (
           <p className="body" role="note">
-            <b>You seem to be on mobile data.</b> This uses about {VOICE_DOWNLOAD_MB} MB of it.
+            <b>You seem to be on mobile data.</b> This uses up to {VOICE_DOWNLOAD_MB} MB of it.
           </p>
         )}
         <p className="small">Happens once, in the background. Keep the app open until it finishes.</p>
@@ -114,7 +114,7 @@ export default function VoiceSettings() {
       )}
       {onMobileData() && (
         <p className="body" role="note">
-          <b>You seem to be on mobile data.</b> This uses about {VOICE_DOWNLOAD_MB} MB of it. Wi-Fi is better.
+          <b>You seem to be on mobile data.</b> This uses up to {VOICE_DOWNLOAD_MB} MB of it. Wi-Fi is better.
         </p>
       )}
       <button type="button" className="btn btn-solid" onClick={download}>

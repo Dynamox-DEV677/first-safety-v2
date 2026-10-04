@@ -49,6 +49,8 @@ const TAPS = 'button, a.btn, a.tel, a.topic, .bnav a, summary, .hdr-link, .wordm
 const short = (min = 64) => [...document.querySelectorAll(TAPS)].filter(visible).map(e => ({ t: (e.textContent || e.id || e.tagName).trim().replace(/\s+/g, ' ').slice(0, 28), h: Math.round(e.getBoundingClientRect().height) })).filter(x => x.h < min);
 const hscroll = () => document.documentElement.scrollWidth > window.innerWidth;
 const fits = () => document.documentElement.scrollHeight <= window.innerHeight + 1;
+// Scrolled to the end, does the sticky action bar cover the last thing above it?
+const clearOfBar = () => { const a = document.querySelector('.actions'); if (!a) return 'no bar'; window.scrollTo(0, document.documentElement.scrollHeight); const prev = a.previousElementSibling; if (!prev) return 'nothing above'; const gap = a.getBoundingClientRect().top - prev.getBoundingClientRect().bottom; return gap >= -1 ? 'clear' : 'HIDDEN ' + Math.round(-gap) + 'px'; };
 const gates = () => [...document.querySelectorAll('.gate')].map(g => ({ title: g.querySelector('h2')?.textContent || '', lines: g.querySelectorAll('.srcd').length, cites: [...g.querySelectorAll('.srcd-cite a')].every(a => /^https:\/\//.test(a.href)), held: g.querySelectorAll('.gate-msg').length }));
 const recRows = () => Object.fromEntries([...document.querySelectorAll('.rec-row')].map(r => [r.querySelector('.rec-label').textContent.trim(), r.querySelector('.rec-value').textContent.trim()]));
 const recLists = () => Object.fromEntries([...document.querySelectorAll('.rec-sec')].filter(s => s.querySelector('.rec-list') || (!s.querySelector('.rec-rows') && s.querySelector('h2'))).map(s => [s.querySelector('h2').textContent.trim(), [...s.querySelectorAll('.rec-list li')].map(li => li.textContent.trim())]));
@@ -93,8 +95,15 @@ log.push(['T1 picker', location.hash, 'startedVia', ls('fs.biteRecord')?.started
 const typeIt = async (words) => { let i = null; for (let k = 0; k < 40 && !i; k++) { i = document.querySelector('#what-happened'); if (!i) await sleep(100); } if (!i) throw new Error('no type box on ' + location.hash + ' voice=' + document.querySelector('[data-voice]')?.dataset.voice); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(i, words); i.dispatchEvent(new Event('input', { bubbles: true })); await sleep(80); document.querySelector('.type-box button[type=submit]').click(); await sleep(300); for (let k = 0; k < 60 && document.querySelector('[data-voice=working]'); k++) await sleep(100); await sleep(150); };
 await typeIt('street kutta bit my leg, khoon aa raha hai');
 log.push(['T2 typed', 'heard', txt('.voice-heard'), 'chips', [...document.querySelectorAll('.chip')].map(c => c.textContent), 'record', (({animal, site, contact, bleeding}) => ({animal, site, contact, bleeding}))(ls('fs.biteRecord'))]);
-clickText(/^Looks right$/); await sleep(300);
-log.push(['T3 site known -> facts screen', location.hash]);
+clickText(/^Looks right$/); await sleep(400);
+log.push(['T3 looks right -> washing starts (wash first)', location.hash, 'timer', !!ls('fs.timer'), 'washStartedAt set', !!ls('fs.biteRecord')?.washStartedAt]);
+
+// ---- wash first: the questions come while the water runs ----
+let asked = 0; const realConfirm = window.confirm; window.confirm = () => { asked++; return false; };
+clickText(/^Reset timer$/); await sleep(150); window.confirm = realConfirm;
+log.push(['W1 wash screen', 'questions button', txt('[data-wash=questions]'), 'next while washing', document.querySelector('[data-next]')?.dataset.next, 'reset asks first', asked === 1, 'timer kept', !!ls('fs.timer')]);
+document.querySelector('[data-wash=questions]').click(); await sleep(400);
+log.push(['W2 questions while washing', location.hash, 'keep-washing note', !!document.querySelector('[data-wash=note]'), 'red button', txt('.actions .btn-red'), 'one clock', clocks()]);
 await go('#/now/animal'); await sleep(300);
 await typeIt('a cat or a rat, not sure');
 log.push(['T4 ambiguous', 'narrowed taps', [...document.querySelectorAll('[data-voice=candidates] .btn')].map(b => b.textContent), 'or online pick', [...document.querySelectorAll('.chip')].map(c => c.textContent), 'prompt', txt('[data-voice=done] .body') || (btn(/^Looks right$/) ? 'Looks right' : '')]);
@@ -172,7 +181,7 @@ window.confirm = () => true; clickText(/^New incident$/); await sleep(300);
 log.push(['N1 new incident', location.hash, 'record', ls('fs.biteRecord'), 'timer', ls('fs.timer'), 'clinic link gone', !document.querySelector('.clinic-link')]);
 
 // ---- §9 voice: this run opts out of the automatic download, so nothing is downloading and the
-// LEARN home shows no voice card; Settings offers the download by hand. Online help is on by default. ----
+// LEARN home shows no voice card; Settings offers the download by hand. Online help is off by default. ----
 await go('#/learn'); await sleep(500);
 log.push(['L1 learn, no download running', 'voice card shown', !!document.querySelector('.offer')]);
 await go('#/settings'); await sleep(300);
@@ -235,7 +244,7 @@ async function main() {
   await send('Page.enable')
   await send('Runtime.enable')
   await send('Network.enable')
-  // A fresh phone downloads the voice model by itself; that 70 MB is exercised in qa_voice.mjs.
+  // A fresh phone downloads the voice model by itself; that 67 MB is exercised in qa_voice.mjs.
   // Opt this run out (as "Remove voice files" would), so its network and timing checks are about the app.
   await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem('fs.voiceAuto', 'false') } catch {}` })
   await size(360)
@@ -263,6 +272,20 @@ async function main() {
     print(['W @' + w, out])
   }
   await size(360)
+
+  // ---- the sticky action bar never hides the end of a screen; the snake notice comes into view ----
+  const bars = {}
+  for (const [name, hash] of [['picker', '#/now/animal'], ['area', '#/now/area'], ['facts', '#/now/details'], ['step1', '#/now/step/1'], ['step3', '#/now/step/3'], ['step6', '#/now/step/6']]) {
+    await open(hash)
+    bars[name] = await evaluate(`(() => { ${HELPERS.replace('const log = []; window.__qaLog = log;', '')}; return clearOfBar(); })()`)
+  }
+  await open('#/now/animal')
+  await evaluate(`window.scrollTo(0, 0); [...document.querySelectorAll('button')].find(b => /^Snake, insect or spider$/.test(b.textContent.trim())).click()`)
+  await sleep(500)
+  const snake = await evaluate(`(() => { const n = document.querySelector('.notice'); const a = document.querySelector('.actions'); if (!n || !a) return 'missing'; const nr = n.getBoundingClientRect(); return { 'notice bottom above the bar': nr.bottom <= a.getBoundingClientRect().top + 1, 'notice on screen': nr.top >= 0 && nr.bottom <= innerHeight }; })()`)
+  await shot('v2-snake-notice-360.png')
+  print(['B sticky bar at the end of each screen', bars, 'snake notice', snake])
+
   await open('#/now/area'); await shot('v2-area6-360.png')
   await open('#/now/details'); await shot('v2-facts-360.png')
   await evaluate(`window.scrollTo(0, 900)`); await sleep(200); await shot('v2-facts-360-scrolled.png')
@@ -296,7 +319,7 @@ async function main() {
   const foreign = requests.filter((r) => !r.url.startsWith(origin) && !r.url.startsWith('data:') && !r.url.startsWith('blob:') && !r.url.startsWith('chrome'))
   const api = requests.filter((r) => r.url.includes('/api/'))
   const posts = requests.filter((r) => r.method !== 'GET' && !r.url.includes('/api/match'))
-  // Online help is on by default: the only thing allowed out is POST /api/match with {text}, nothing else.
+  // Online help is off by default: nothing should reach /api at all, and nothing goes to another host.
   const apiBodies = api.map((r) => { try { return Object.keys(JSON.parse(r.body)).join(',') } catch { return 'unparsable' } })
   print(['NET', 'requests', requests.length, 'to other hosts', foreign.map((r) => r.url).slice(0, 5), 'to /api', api.length, 'their bodies carry only', [...new Set(apiBodies)], 'api methods', [...new Set(api.map((r) => r.method))], 'other non-GET', posts.map((r) => r.method + ' ' + r.url).slice(0, 5)])
 

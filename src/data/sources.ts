@@ -18,7 +18,7 @@ export const SOURCES: Record<SourceId, Source> = {
   WHO_FS: {
     id: 'WHO_FS',
     short: 'WHO fact sheet',
-    title: 'Rabies - Fact sheet',
+    title: 'Rabies – Fact sheet',
     publisher: 'World Health Organization',
     year: 'updated regularly',
     url: 'https://www.who.int/news-room/fact-sheets/detail/rabies',
@@ -37,7 +37,7 @@ export const SOURCES: Record<SourceId, Source> = {
     title: 'National Guidelines for Rabies Prophylaxis, 2019 (National Rabies Control Programme)',
     publisher: 'National Centre for Disease Control, Ministry of Health & Family Welfare, Government of India',
     year: '2019',
-    url: 'https://ncdc.mohfw.gov.in',
+    url: 'https://ncdc.mohfw.gov.in/uploads/resource/1769332447_National-Guidelines-for-Rabies-Prophylaxis.pdf',
   },
   ICMR_2023: {
     id: 'ICMR_2023',
@@ -50,7 +50,7 @@ export const SOURCES: Record<SourceId, Source> = {
   GOI_112: {
     id: 'GOI_112',
     short: 'ERSS 112',
-    title: 'Emergency Response Support System - single emergency number 112',
+    title: 'Emergency Response Support System – single emergency number 112',
     publisher: 'Ministry of Home Affairs, Government of India',
     year: '2019',
     url: 'https://112.gov.in',

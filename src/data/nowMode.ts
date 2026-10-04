@@ -41,7 +41,7 @@ export const steps: Step[] = [
     donts: ['Do not put chilli powder, turmeric, oil, lime, mud, ash or herbs on the wound.'],
     mythBuster: {
       myth: '"Turmeric or chilli on the bite will kill the germs."',
-      fact: 'No. These do not kill the rabies virus and they damage the wound. NCDC says do not apply irritants. Soap and running water flush the virus out - that is why 15 minutes matters.',
+      fact: 'No. These do not kill the rabies virus and they damage the wound. NCDC says do not apply irritants. Soap and running water flush the virus out – that is why 15 minutes matters.',
     },
     timerSeconds: WASH_SECONDS,
     critical: true,
@@ -51,7 +51,7 @@ export const steps: Step[] = [
     id: 2,
     title: 'Apply antiseptic',
     instruction: 'After washing, dab povidone-iodine (Betadine) or 70% alcohol (spirit) on the wound.',
-    detail: 'If you have neither, skip this step. Do not spend time searching for it - getting to a hospital matters more.',
+    detail: 'If you have neither, skip this step. Do not spend time searching for it – getting to a hospital matters more.',
     critical: false,
     sources: ['NCDC_2019'],
   },
@@ -76,7 +76,7 @@ export const steps: Step[] = [
   {
     id: 5,
     title: 'Tell an adult and get help',
-    instruction: 'Tell a parent, teacher or any adult right now - even if the bite is small, even if you are scared of getting into trouble.',
+    instruction: 'Tell a parent, teacher or any adult right now – even if the bite is small, even if you are scared of getting into trouble.',
     detail: 'If no adult is nearby, call 112. Four in ten people bitten by suspected rabid animals are children under 15. A small bite still needs the vaccine.',
     mythBuster: {
       myth: '"It was only a small bite from a puppy, I do not need to tell anyone."',
@@ -94,7 +94,7 @@ export const steps: Step[] = [
       'The vaccine is called post-exposure prophylaxis (PEP). Do not wait to see whether the animal gets sick.',
     mythBuster: {
       myth: '"The dog looked healthy, so I do not need the vaccine."',
-      fact: 'An animal can spread rabies for days before it looks sick. Start the vaccine today. If a dog or cat can be watched and is still healthy after 10 days, the doctor may stop the course - but only the doctor decides that.',
+      fact: 'An animal can spread rabies for days before it looks sick. Start the vaccine today. If a dog or cat can be watched and is still healthy after 10 days, the doctor may stop the course – but only the doctor decides that.',
     },
     calls: [
       { number: '112', label: 'Emergency', note: 'All India, any phone, free.' },
@@ -116,9 +116,9 @@ export const triage = {
   ],
   notes: {
     known:
-      'Start treatment today anyway. Tell the doctor whether the animal is vaccinated. If it is a dog or cat, someone should watch it for 10 days - if it stays healthy the doctor may stop the vaccine course. Never wait those 10 days before starting.',
+      'Start treatment today anyway. Tell the doctor whether the animal is vaccinated. If it is a dog or cat, someone should watch it for 10 days – if it stays healthy the doctor may stop the vaccine course. Never wait those 10 days before starting.',
     unknown:
-      'Start treatment today and complete the full course. Tell the doctor you could not identify the animal, and whether it was behaving strangely - aggressive, drooling, or unusually quiet.',
+      'Start treatment today and complete the full course. Tell the doctor you could not identify the animal, and whether it was behaving strangely – aggressive, drooling, or unusually quiet.',
   } satisfies Record<DogKnown, string>,
   sources: ['WHO_FS', 'WHO_TRS', 'NCDC_2019'] as SourceId[],
 }

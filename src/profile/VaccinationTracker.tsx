@@ -5,7 +5,7 @@ import { SCHEDULES, buildIcs, toLocalDate, useVaccine, type Schedule } from '../
 const STATUS_LABEL = {
   done: 'Done',
   today: 'Due today',
-  overdue: 'Overdue - go today',
+  overdue: 'Overdue – go today',
   upcoming: 'Upcoming',
 } as const
 
@@ -19,7 +19,7 @@ export default function VaccinationTracker() {
       <div>
         <p className="body">
           Log the date of your first dose and the app counts the days for the rest of the course. Your doctor decides
-          which schedule you are on - this tracker only keeps the dates.
+          which schedule you are on – this tracker only keeps the dates.
         </p>
         <label className="lbl" htmlFor="sched">
           Schedule the doctor gave you
@@ -85,8 +85,8 @@ export default function VaccinationTracker() {
       {v.next ? (
         <div className="notice">
           Next dose: day {v.next.day}, {v.next.dueLabel}
-          {v.next.status === 'today' && ' - that is today.'}
-          {v.next.status === 'overdue' && ' - overdue. Go today; do not skip it.'}
+          {v.next.status === 'today' && ' – that is today.'}
+          {v.next.status === 'overdue' && ' – overdue. Go today; do not skip it.'}
         </div>
       ) : (
         <div className="notice">Course complete. Well done - keep the record in case a doctor asks.</div>

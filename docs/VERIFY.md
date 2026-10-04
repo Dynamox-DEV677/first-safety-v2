@@ -13,16 +13,18 @@ headless Chrome from a clean profile. Re-run any time with the commands at the b
 | ✅ | Fresh load never restores a finished incident; "New incident" exists | Pass | Recent and unfinished → "Continue". 31 minutes old or finished → the entry screen. "New incident" on the record clears the bite and timer, keeps the medical profile. |
 | ✅ | Exactly one clock, tabular mono | One visible at a time | The wash screen shows the big timer; every other emergency screen shows the same clock in the header bar. Both mono, tabular. The wash screen's clock stays in the page because the brief locks the timer (§0). |
 | ✅ | Every voice step has a visible tap equivalent | Pass | The animal buttons are always below the voice card. Typing works without the speech model, and every result has "Try again". |
-| ✅ | Voice with no model → tap list immediately, no spinner, nothing waits | Pass (rule changed 4 Oct) | The brief said the model must never download during an emergency. On 4 Oct Darshan changed that: voice installs itself in the background once the app is saved for offline, because someone who cannot see the buttons should not have to find Settings first. Fresh phone opened straight onto the voice screen: 12 buttons and the type box at once, *"Voice is downloading. Tap answers for now."*, then the mic appeared on that same screen with no tap (13 s on a fast line) and a screen reader hears *"Voice is ready. Speak instead is now above the buttons."* Settings shows progress with Stop; Stop or Remove keeps it from downloading by itself again (after Remove, a reload fetched nothing). |
+| ✅ | Voice with no model → tap list immediately, no spinner, nothing waits | Pass (rule changed 4 Oct) | The brief said the model must never download during an emergency. On 4 Oct Darshan changed that: voice installs itself in the background once the app is saved for offline, because someone who cannot see the buttons should not have to find Settings first. It comes from this site, not a third party (`public/models`; `qa_voice.mjs` watches the speech worker's own requests too). Fresh phone opened straight onto the voice screen: 12 buttons and the type box at once, *"Voice is downloading. Tap answers for now."*, then the mic appeared on that same screen with no tap and a screen reader hears *"Voice is ready. Speak instead is now above the buttons."* Settings shows progress with Stop; Stop or Remove keeps it from downloading by itself again (after Remove, a reload fetched nothing). |
 | ✅ | Report generates offline, copies, reads aloud, says "contains no medical assessment" | Pass | Renders offline. Copy uses the clipboard, with a plain-text fallback. Read aloud uses the browser's own speech (no download); hear it on the phone. The footer is verbatim. |
-| ✅ | Report shows "Unknown" rather than omitting or guessing | Pass | 73 logic tests, e.g. an empty record shows Unknown on every row. A bite time is never invented: "Unknown — more than 1 hour before 22:03". |
-| ✅ | Nothing is uploaded anywhere | Pass, with one designed exception | 362 requests over the full QA run, none to another host. The only one leaving the page is `POST /api/match`, sent once when typed words were unclear, and its body carries only `{text}`. The record, the profile and audio never leave. With Online help switched off there is none. Voice's one-time download only fetches the model from Hugging Face, sending nothing; this run opts out of it, and `qa_voice.mjs` covers it. |
+| ✅ | Report shows "Unknown" rather than omitting or guessing | Pass | 78 logic tests, e.g. an empty record shows Unknown on every row. A bite time is never invented: "Unknown — more than 1 hour before 22:03". |
+| ✅ | Nothing is uploaded anywhere | Pass | 420 requests over the full QA run on 4 Oct, none to another host and none to `/api`: Online help is off by default. Switched on, the only request that leaves is `POST /api/match` carrying `{text}`. The record, the profile and audio never leave. Voice's one-time download comes from this site as well; `qa_voice.mjs` watches the speech worker's own requests and finds no other host. |
 | ✅ | Every on-screen clinical string traces to a source in `SOURCES.md` | Pass for all v2 content | Every v2 string carries source, URL and date. The NCDC 2019 quotes were OCR'd and checked against the page images. The v1 steps show their sources per step (`src/data/sources.ts`). |
 | ✅ | Nothing unverified renders; the verify gate message is unchanged | Pass | Livestock and person each hold one unreviewed line back behind the unchanged gate message. |
 | ✅ | Red appears only on urgent actions and DON'T steps | Pass | Red is used for: the wash buttons, the timer, the timer bar in the header, the rule beside the final instruction, and the "FIRST SAFETY" label the brief asks for. The microphone button is no longer red. |
 | ✅ | All instruction text ≥ 7:1 contrast, both themes | Pass on 13 screens × 2 themes | Lowest: 8.59 (light), 7.44 (dark). Excluded as not instruction text: the timer digits (numbers), the entry footnote (the brief specifies `--ink-3`) and the entry label. |
 | ✅ | No horizontal scroll and no nested scrollers at 360px | Pass at 360 / 390 / 414 | The six-site screen fits without scrolling at 360×740. |
 | ✅ | Buttons ≥ 64px tall | Pass | No tap target under 64px on any checked screen; entry buttons 132px, site buttons 84px. |
+| ✅ | Wash first (audit, 4 Oct) | Pass | On *Tell me what happened* the first answer (an animal tap or *Looks right*) starts the 15 minutes and opens the wash screen. There, *Answer a few questions while you wash* goes to the next unanswered question; each question screen says *Keep washing while you answer* and has *Back to washing*; *Next* stays outlined, not solid, until the 15 minutes are done; *Reset timer* asks first. |
+| ✅ | Sticky buttons never hide the end of a screen | Pass on 6 screens | Scrolled to the end, the last content sits above the bar on the animal, site, facts and step 1 / 3 / 6 screens. The snake notice scrolls itself into view above the bar, with 108 and 112. |
 | ⬜ | Tested on a real cheap Android, outdoors, in sunlight | **Yours, 4 Oct** | Live at first-safety.vercel.app. Step-by-step list and QR code: `docs/PHONE-TEST.md`, `docs/first-safety-qr.png`. |
 
 ## Decisions to know about
@@ -30,16 +32,18 @@ headless Chrome from a clean profile. Re-run any time with the commands at the b
 - **The WHO category table is gone from the emergency help screen.** It listed "Category I — No
   vaccine needed", which invites a frightened person to grade their own bite, the line §6 says the
   app must never cross. The help screen now points to the incident record instead.
-- **Online help (Gemini) is on by default** — Darshan's decision. It sends only the typed or spoken
-  words the app couldn't place (never the report, never audio), the screen says so under the type
-  box, and one switch in Settings turns it off. The app is complete without it.
+- **Online help (Gemini) is off by default** — Darshan's decision on 4 Oct, after an audit (it was
+  on from 2 Oct). Switched on, it sends only the typed or spoken words the app couldn't place (never
+  the report, never audio), and the screen says so under the type box. The app is complete without it.
 - **No site-specific instructions.** The brief expected the sources to treat head, neck, face and
   hands differently. The WHO fact sheet, NCDC 2015 and all 52 pages of NCDC 2019 contain no
   patient-facing guidance by site. The only site-specific text is clinician technique for RIG
   injection, which is not shown. The site screen records the site, using NCDC's own reporting
-  categories, and shows WHO's "location of virus entry" line. Details are in `SOURCES.md`.
-- **The voice download is about 70 MB, not 40 MB.** The model is 40 MB; the speech runtime it needs
-  adds about 27 MB. The screen says 70.
+  categories. The facts screen shows the same two sourced lines for every site under "Wherever the
+  bite is"; until 4 Oct the heading named the site, which hinted at a grade. Details are in `SOURCES.md`.
+- **The voice download is 67 MB on the phone, measured:** model 41.0 MiB plus speech runtime 25.7 MiB.
+  The runtime travels compressed (6 MB), so a download uses about 50 MB of data. The screen says
+  "about 67 MB", and "up to 67 MB" of mobile data.
 
 ## Still to check by a person
 

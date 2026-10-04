@@ -4,6 +4,7 @@ import SourceNote from '../components/SourceNote'
 import TelLink from '../components/TelLink'
 import Timer from './Timer'
 import PrepPanel from './PrepPanel'
+import WhileWashing from './WhileWashing'
 import AnimalNotes from '../components/Sourced'
 
 interface Props {
@@ -21,6 +22,7 @@ export default function StepCard({ step, triageNote }: Props) {
       {step.timerSeconds ? (
         <>
           <Timer />
+          <WhileWashing />
           <PrepPanel />
         </>
       ) : null}

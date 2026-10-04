@@ -2,9 +2,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// First Safety - static PWA. No backend for anyone's data, no analytics. The one outside host is
-// Hugging Face, for the voice model, downloaded once.
+// First Safety - static PWA. No backend for anyone's data, no analytics, no third-party requests:
+// even the voice model is served from public/models. The one outside call is the optional online
+// helper (/api/match, off by default), and that goes through this site's own function.
 export default defineConfig({
+  // Routes are hash-based, so no server fallback to index.html is needed. Without one, a missing file
+  // is a 404 locally, exactly as on Vercel: the speech library treats a 404 as "optional file absent",
+  // but an HTML page served in its place would break it.
+  appType: 'mpa',
   plugins: [
     react(),
     VitePWA({

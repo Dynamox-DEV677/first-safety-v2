@@ -16,8 +16,11 @@ export const VOICE_KEY = 'fs.voice'
 /** false once someone stops or removes voice on this phone: it never downloads by itself again there. */
 export const VOICE_AUTO_KEY = 'fs.voiceAuto'
 export const VOICE_MODEL = 'Xenova/whisper-tiny.en'
-/** Model (about 41 MB) plus the speech runtime (about 28 MB), fetched once. */
-export const VOICE_DOWNLOAD_MB = 70
+/**
+ * Space on the phone, measured: model 41.0 MiB plus speech runtime 25.7 MiB. Both come from this
+ * site, once; the runtime travels compressed, so the data used is nearer 50 MB.
+ */
+export const VOICE_DOWNLOAD_MB = 67
 export const MAX_RECORD_SECONDS = 10
 /** Service-worker runtime cache that keeps the worker script itself (see vite.config.ts). */
 const RUNTIME_CACHE = 'fs-voice'
@@ -78,13 +81,16 @@ export async function isVoiceReady(): Promise<boolean> {
   }
 }
 
-type WorkerMsg =
+/** Every answer names the request it answers (see voice.worker.ts). */
+type WorkerMsg = { id: number } & (
   | { type: 'progress'; status: string; file: string; progress: number; loaded: number; total: number }
   | { type: 'ready' }
   | { type: 'result'; text: string }
   | { type: 'error'; message: string }
+)
 
 let worker: Worker | null = null
+let nextRequestId = 0
 
 function getWorker(): Worker {
   worker ??= new Worker(voiceWorkerUrl, { type: 'module' })
@@ -106,6 +112,7 @@ function request<T extends WorkerMsg['type']>(
 ): Promise<Extract<WorkerMsg, { type: T }>> {
   return new Promise((resolve, reject) => {
     const w = getWorker()
+    const id = ++nextRequestId
     let timer = 0
     const cleanup = () => {
       w.removeEventListener('message', onMessage)
@@ -114,6 +121,8 @@ function request<T extends WorkerMsg['type']>(
     }
     const onMessage = (e: MessageEvent<WorkerMsg>) => {
       const m = e.data
+      // A warm-up's "ready" must never be taken as a transcription's answer, or the other way round.
+      if (m.id !== id) return
       if (m.type === 'progress') {
         onProgress?.({ status: m.status, file: m.file, pct: m.progress, loaded: m.loaded, total: m.total })
         return
@@ -137,7 +146,7 @@ function request<T extends WorkerMsg['type']>(
         reject(new Error('voice timed out'))
       }, timeoutMs)
     }
-    w.postMessage(post, transfer)
+    w.postMessage({ ...post, id }, transfer)
   })
 }
 

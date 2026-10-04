@@ -11,7 +11,7 @@ export default function Timer() {
   const pct = Math.min(100, (t.elapsed / t.total) * 100)
 
   const label =
-    t.status === 'idle' ? 'minutes of washing' : t.status === 'running' ? 'remaining - keep washing' : 'done'
+    t.status === 'idle' ? 'minutes of washing' : t.status === 'running' ? 'remaining – keep washing' : 'done'
 
   const onReset = () => {
     if (window.confirm('Reset the timer? Only do this if you have not started washing yet.')) t.reset()

@@ -37,7 +37,7 @@ up to 99% of human cases; bats as the primary source where dog rabies is control
 transmission never confirmed; 40% of deaths are children under 15; fatal once symptoms appear,
 preventable with prompt PEP; and (2026-09-30) "the incubation period … may vary from one week to
 one year, depending on factors such as the location of virus entry and the viral load", shown on
-the facts screen once the bite site is known.
+the facts screen under "Wherever the bite is", the same for every site.
 
 **NCDC 2015** — do not apply chillies, mustard oil or any other irritant; wash with plenty of soap
 and water; do not dress or stitch; cauterization no longer recommended; the 10-day observation
@@ -110,12 +110,15 @@ Neither statement below is shown: both are category or treatment decisions (see 
 
 ## Area of injury
 
-The app asks "Where is the bite?" once, records the answer for the handover report, and shows what
-the sources say about location. Read for this on 2026-09-30 and 2026-10-01: the WHO fact sheet, NCDC
-2015 and NCDC 2019 (all 52 pages, by OCR). None of them gives a patient-facing instruction that
-depends on the body site. The only location statements are:
+The app asks "Where is the bite?" once and records the answer for the handover report. Read for this
+on 2026-09-30 and 2026-10-01: the WHO fact sheet, NCDC 2015 and NCDC 2019 (all 52 pages, by OCR).
+None of them gives a patient-facing instruction that depends on the body site. So the facts screen
+shows the same two lines whatever the site, under the heading "Wherever the bite is". Until 4 Oct the
+heading named the chosen site ("About a bite on the face / head / neck"); an audit pointed out that
+the WHO location line under a site-named heading hints that some sites are worse, which is a grade
+by implication, so the heading no longer names one. The only location statements are:
 
-- WHO: the incubation period depends on "the location of virus entry" — shown for every site.
+- WHO: the incubation period depends on "the location of virus entry" — shown, the same for every site.
 - NCDC 2019, pp. 8 and 10: fingertips, toes, ear lobes, the nose and around the eye "can be safely
   injected with RIG" with care — **clinician technique, deliberately not shown**, because it reads
   as a treatment recommendation.

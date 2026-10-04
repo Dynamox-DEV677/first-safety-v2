@@ -19,14 +19,14 @@ export interface ScheduleInfo {
 export const SCHEDULES: ScheduleInfo[] = [
   {
     id: 'IM',
-    title: 'Intramuscular - 5 doses',
+    title: 'Intramuscular – 5 doses',
     days: [0, 3, 7, 14, 28],
     note: 'One injection in the upper arm on each visit (NCDC "Essen" schedule).',
     sources: ['NCDC_2019'],
   },
   {
     id: 'ID',
-    title: 'Intradermal - 4 visits',
+    title: 'Intradermal – 4 visits',
     days: [0, 3, 7, 28],
     note: 'Two small injections per visit (NCDC updated Thai Red Cross schedule).',
     sources: ['NCDC_2019'],
@@ -139,11 +139,11 @@ export function notifyIfDue(record: VaccineRecord | null, settings: ReminderSett
   const due = computeDoses(record).find((d) => d.status === 'today' || d.status === 'overdue')
   if (!due) return
   try {
-    new Notification('First Safety - vaccine dose', {
+    new Notification('First Safety – vaccine dose', {
       body:
         due.status === 'today'
           ? `Day ${due.day} dose is due today. Go to the hospital or clinic.`
-          : `Day ${due.day} dose was due on ${due.dueLabel}. Go today - do not skip it.`,
+          : `Day ${due.day} dose was due on ${due.dueLabel}. Go today – do not skip it.`,
     })
     save({ ...settings, lastNotified: today })
   } catch {
@@ -172,7 +172,7 @@ export function buildIcs(record: VaccineRecord): string {
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${icsDate(d.due)}`,
       `DTEND;VALUE=DATE:${icsDate(addDays(d.due, 1))}`,
-      `SUMMARY:Rabies vaccine - day ${d.day} dose`,
+      `SUMMARY:Rabies vaccine – day ${d.day} dose`,
       'DESCRIPTION:Anti-rabies vaccine dose. Go to the hospital or Anti-Rabies Clinic. Do not skip or delay it.',
       'BEGIN:VALARM',
       'TRIGGER:-PT9H',

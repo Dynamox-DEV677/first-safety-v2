@@ -5,7 +5,6 @@ import {
   CONTACT_TYPES,
   SUBSTANCES,
   YES_NO_UNSURE,
-  siteLabel,
   type Answer,
   type BiteRecord,
 } from '../data/bite'
@@ -16,6 +15,7 @@ import { href, navigate } from '../hooks/useRoute'
 import { writeLS } from '../hooks/useLocalStorage'
 import { setBiteEstimate, toggleBiteListItem, updateBiteRecord, useBiteRecord } from '../hooks/useBiteRecord'
 import { useTimer } from '../hooks/useTimer'
+import WashingNote from './WashingNote'
 
 /**
  * "A few facts for the clinic" - every answer optional, every answer only recorded for the handover
@@ -52,9 +52,12 @@ export default function TriageFlow() {
     <div className="page-main facts" style={{ display: 'flex', flexDirection: 'column' }}>
       <p className="eyebrow">For the clinic · all optional</p>
       <h1 className="title">A few facts</h1>
+      <WashingNote />
       <p className="body">Saved for the handover report. They do not change what to do next.</p>
 
-      {b?.site && <VerifyGate notes={SITUATION.site} title={`About a bite on the ${siteLabel(b.site).toLowerCase()}`} />}
+      {/* The same lines for every site, under a heading that names none: the sources give no
+          site-specific first aid, and a site-named heading would hint at a grade (SOURCES.md). */}
+      <VerifyGate notes={SITUATION.site} title="Wherever the bite is" />
 
       <Q title="When did it happen?">
         <div className="grid2" role="group" aria-label="When did it happen" data-q="when">

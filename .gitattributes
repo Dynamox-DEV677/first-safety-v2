@@ -1,0 +1,2 @@
+# The voice model is an unmodified copy of a pinned upstream revision: never convert its line endings.
+public/models/** -text

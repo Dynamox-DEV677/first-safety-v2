@@ -5,11 +5,12 @@
  */
 import { matchTranscript } from '../src/voice/match'
 import { validateMatch } from '../src/voice/onlineSchema'
-import { buildIncidentRecord, recordSpeech, recordText, type RecordInput } from '../src/report/buildReport'
+import { bloodGroupText, buildIncidentRecord, recordSpeech, recordText, type RecordInput } from '../src/report/buildReport'
 import { emptyBite, type BiteRecord } from '../src/data/bite'
 import { EMPTY_MEDICAL } from '../src/hooks/useMedical'
 import * as api from '../api/match'
 import { onlineMatchEnabled } from '../src/voice/online'
+import { nextQuestion } from '../src/now/washFirst'
 
 let passed = 0
 const failures: string[] = []
@@ -64,7 +65,12 @@ const m = (t: string) => matchTranscript(t)
   check('schema: string confidence rejected', validateMatch({ ...good, confidence: '0.9' }) === null)
 }
 
-check('online help is on by default (nothing stored)', onlineMatchEnabled() === true)
+check('online help is off by default (nothing stored)', onlineMatchEnabled() === false)
+
+check('wash first: next question is the animal, then the site, then the facts',
+  nextQuestion(null) === '/now/animal' &&
+  nextQuestion({ animal: 'dog', site: '' }) === '/now/area' &&
+  nextQuestion({ animal: 'dog', site: 'hand' }) === '/now/details')
 
 // ---------------------------------------------------------------- serverless function, fake Gemini
 const realFetch = globalThis.fetch
@@ -175,8 +181,8 @@ const FORBIDDEN = /categor|risk|you will be fine|you'll be fine|no need|not need
   const er = rows(empty)
   check('record: nothing known -> every row says Unknown', Object.values(er).every((v) => v.startsWith('Unknown')), er)
   check('record: nothing known -> DONE says Unknown', eq(lists(empty).DONE, ['Unknown']))
-  const nd = lists(empty).NOT_DONE.join(' | ')
-  check('record: nothing known -> NOT DONE asks about substances and closure', nd.includes('Substances on the wound: Unknown') && nd.includes('Stitches or wound closure: Unknown'), nd)
+  const nd = (lists(empty).WOUND_CARE ?? []).join(' | ')
+  check('record: nothing known -> neutral heading, asks about substances and closure', !('NOT_DONE' in lists(empty)) && nd.includes('Substances on the wound: Unknown') && nd.includes('Stitches or wound closure: Unknown'), nd)
   const et = recordText(empty, 'en')
   check('record: closing lines verbatim', et.includes('Recorded by the patient or a bystander in the First Safety app.') && et.includes('This is a record of what happened. It contains no medical assessment.'))
   check('record: title', et.startsWith('FIRST SAFETY — INCIDENT RECORD'))
@@ -210,6 +216,13 @@ const FORBIDDEN = /categor|risk|you will be fine|you'll be fine|no need|not need
   check('record: priors unknown', fr.PRIOR_RABIES === 'Unknown' && fr.PRIOR_TETANUS === 'Unknown')
   const ft = recordText(full, 'en')
   check('record: no assessment words', !FORBIDDEN.test(ft), ft.match(FORBIDDEN)?.[0])
+
+  const half = lists(buildIncidentRecord(input({ ...b, closure: '' }, { now })))
+  check('record: one part unknown -> heading stays neutral', !!half.WOUND_CARE && !half.NOT_DONE && half.WOUND_CARE.includes('Stitches or wound closure: Unknown'), half)
+
+  check('blood group: "o+" spelled out', bloodGroupText('o+') === 'O positive (O+)', bloodGroupText('o+'))
+  check('blood group: "B -ve", "ab+", "0+"', bloodGroupText('B -ve') === 'B negative (B−)' && bloodGroupText('ab+') === 'AB positive (AB+)' && bloodGroupText('0+') === 'O positive (O+)')
+  check('blood group: unrecognised text kept as typed', bloodGroupText(' Bombay ') === 'Bombay' && bloodGroupText('') === '')
 
   const turmeric = buildIncidentRecord(input({ ...b, substances: ['turmeric', 'oil'] }, { now }))
   const tl = lists(turmeric).NOT_DONE

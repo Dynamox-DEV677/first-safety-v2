@@ -24,7 +24,12 @@ It washes, it times, it records, it hands over.
 
 - **Washing first.** The first screen has two buttons. The red one starts WHO's 15-minute soap-and-
   water wash immediately, because most people wash for under a minute and that is the single most
-  useful thing anyone can do. The timer keeps true time through a locked screen and a reload.
+  useful thing anyone can do. The other lets you say or tap what happened, and its first answer
+  starts the same 15 minutes. The timer keeps true time through a locked screen and a reload.
+- **Questions while washing, never before it.** The app asks the clinic's questions during the
+  fifteen minutes you would otherwise spend standing at a sink: where the bite is, when, what the
+  animal did, what was put on the wound. Every question screen says "Keep washing while you answer"
+  and has "Back to washing".
 - **Every mammal.** Dogs cause most rabies in India, but cats, monkeys, rats, bats, mongooses and
   livestock bite too. For each, the app shows what WHO and NCDC India say, word for word, with the
   source and the date it was read. A line no person has reviewed yet is held back and the app says
@@ -44,13 +49,15 @@ It washes, it times, it records, it hands over.
 
 It is built for a clinic waiting room with one bar of signal. Everything runs on the phone: no
 account, no server for anyone's data, and the record never leaves the device. Voice input runs a small speech model
-(Whisper tiny) on the phone itself. It downloads by itself, once, in the background, the first time
-the app is opened with internet, so someone who cannot see the buttons can still speak to it.
+(Whisper tiny) on the phone itself. It downloads by itself, once, in the background, from the app's
+own site (67 MB on the phone), the first time the app is opened with internet, so someone who
+cannot see the buttons can still speak to it.
 Nothing on screen waits for it: until it arrives the buttons and a type box work, and the moment it
 does the mic appears and a screen reader announces it. Typing works without it, in English,
-Hinglish, Hindi or Tamil spellings. For words the app can't place there is an online helper, on by default, bounded
-to 2.5 seconds and a fixed set of answers. It sends only those words, the screen says so, one
-switch in Settings turns it off, and the app is complete without it.
+Hinglish, Hindi or Tamil spellings. For words the app can't place there is an online helper, off
+unless you switch it on, bounded to 2.5 seconds and a fixed set of answers. It sends only those
+words, the screen says so, and the app is complete without it. Nothing else ever leaves the phone,
+and nothing at all goes to a third party.
 
 ### Sources
 
@@ -64,15 +71,16 @@ reason.
 
 ### Tested
 
-There are 73 automated logic tests, plus browser tests on a 360-pixel-wide phone screen that check:
+There are 78 automated logic tests, plus browser tests on a 360-pixel-wide phone screen that check:
 
 - 7:1 text contrast in light and dark themes
 - 64px tap targets
 - every screen working with the network cut
-- nothing leaving the device during a full run except the online helper's lookup, which carries
-  only the typed words
-- on a fresh phone, the voice model installing itself while the emergency screen's buttons work,
-  then the mic appearing there with no tap, and speech understood with the network cut
+- nothing leaving the device during a full run (the online helper is off by default)
+- the first answer starting the wash, and the questions coming during it
+- on a fresh phone, the voice model installing itself from the app's own site while the emergency
+  screen's buttons work, then the mic appearing there with no tap, and speech understood with the
+  network cut
 
 It was also tested on a real Android phone, outdoors. *(Do this on 4 Oct, then keep or edit this
 line.)*

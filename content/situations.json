@@ -1,6 +1,6 @@
 {
   "id": "situations",
-  "about": "Sourced lines shown only when the patient's answers make them relevant. Selected by the facts recorded (site, time, contact, what was put on the wound); never by a judgement. The sources read contain no patient-facing guidance specific to one body site, so every site gets the same two location lines (see SOURCES.md, 'Area of injury').",
+  "about": "Sourced lines shown only when the patient's answers make them relevant. Selected by the facts recorded (site, time, contact, what was put on the wound); never by a judgement. The sources read contain no patient-facing guidance specific to one body site, so every site gets the same two lines, shown under a heading that names no site (see SOURCES.md, 'Area of injury').",
   "site": [
     {
       "id": "site.location",

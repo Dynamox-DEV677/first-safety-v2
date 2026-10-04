@@ -17,6 +17,8 @@ import {
 } from '../voice'
 import { matchTranscript, type VoiceMatch } from '../voice/match'
 import { askOnlineMatcher, onlineMatchEnabled } from '../voice/online'
+import { useTimer } from '../hooks/useTimer'
+import { afterFirstAnswer } from './washFirst'
 
 type Phase = 'checking' | 'no-voice' | 'not-ready' | 'ready' | 'recording' | 'working' | 'done' | 'error'
 
@@ -46,6 +48,7 @@ export default function VoiceInput({ onNotMammal }: Props) {
   const [voiceOk, setVoiceOk] = useState(false)
   const [install, setInstall] = useState<InstallPhase>(() => getVoiceInstall().phase)
   const [announce, setAnnounce] = useState('')
+  const timer = useTimer()
   const rec = useRef<Recording | null>(null)
   const timers = useRef<number[]>([])
 
@@ -131,7 +134,9 @@ export default function VoiceInput({ onNotMammal }: Props) {
       const blob = await r.stop()
       const text = await transcribeSamples(await blobToSamples(blob))
       await handle(text)
-    } catch {
+    } catch (e) {
+      // The screen says only "use the buttons"; the reason goes to the console for remote debugging.
+      console.warn('First Safety voice:', e)
       setError('model')
       setPhase('error')
     }
@@ -167,9 +172,10 @@ export default function VoiceInput({ onNotMammal }: Props) {
     setPhase(idlePhase())
   }
 
+  // Confirming is the first answer: wash first, the rest while washing (see washFirst.ts).
   const pickCandidate = (a: Animal) => {
     updateBiteRecord({ animal: a })
-    navigate(match?.site ? '/now/details' : '/now/area')
+    afterFirstAnswer(timer, match?.site)
   }
 
   if (phase === 'checking') return null
@@ -321,7 +327,7 @@ export default function VoiceInput({ onNotMammal }: Props) {
           <button type="button" className="btn btn-ghost" onClick={reset}>
             Try again
           </button>
-          <button type="button" className="btn btn-solid" onClick={() => navigate(match.site ? '/now/details' : '/now/area')}>
+          <button type="button" className="btn btn-solid" onClick={() => afterFirstAnswer(timer, match.site)}>
             Looks right
           </button>
         </div>
@@ -348,7 +354,7 @@ export default function VoiceInput({ onNotMammal }: Props) {
         </>
       )}
       <p className="small" style={{ marginTop: 10 }}>
-        You can change any of this on the next screens.
+        You can change any of this later.
       </p>
     </div>
   )

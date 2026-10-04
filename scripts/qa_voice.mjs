@@ -70,8 +70,13 @@ async function main() {
     } else if (msg.method === 'Runtime.exceptionThrown') {
       exceptions++
       console.log('PAGE EXCEPTION:', msg.params.exceptionDetails.text, msg.params.exceptionDetails.exception?.description)
+    } else if (msg.method === 'Runtime.consoleAPICalled' && msg.params.type === 'warning') {
+      console.log('PAGE WARNING:', msg.params.args.map((a) => a.value ?? a.description).join(' ').slice(0, 300))
+    } else if (msg.method === 'Target.attachedToTarget') {
+      // The speech worker is its own target: watch its network too, or its downloads go unseen.
+      sendTo(msg.params.sessionId, 'Network.enable')
     } else if (msg.method === 'Network.requestWillBeSent') {
-      requests.push({ id: msg.params.requestId, url: msg.params.request.url, t: Date.now() })
+      requests.push({ id: msg.params.requestId, url: msg.params.request.url, t: Date.now(), worker: !!msg.sessionId })
     } else if (msg.method === 'Network.loadingFinished') {
       sizes.set(msg.params.requestId, msg.params.encodedDataLength)
     }
@@ -81,6 +86,12 @@ async function main() {
       const i = ++id
       pending.set(i, resolve)
       ws.send(JSON.stringify({ id: i, method, params }))
+    })
+  const sendTo = (sessionId, method, params = {}) =>
+    new Promise((resolve) => {
+      const i = ++id
+      pending.set(i, resolve)
+      ws.send(JSON.stringify({ id: i, method, params, sessionId }))
     })
   const evaluate = async (expression) => {
     const r = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })
@@ -129,6 +140,7 @@ async function main() {
   await send('Page.enable')
   await send('Runtime.enable')
   await send('Network.enable')
+  await send('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: false, flatten: true })
   await send('Emulation.setDeviceMetricsOverride', { width: 360, height: 740, deviceScaleFactor: 2, mobile: true })
 
   // A. A fresh phone, opened straight onto the emergency voice screen: the buttons are there at once,
@@ -142,7 +154,10 @@ async function main() {
   await shot('v2-voice-downloading-360.png')
   await waitFor(`document.querySelector('[data-voice]')?.dataset.voice === 'ready'`, 8 * 60_000, 'auto install')
   const secsA = Math.round((Date.now() - tA) / 1000)
-  console.log(JSON.stringify(['A fresh phone, emergency screen', 'first', stateA0, firstA, 'while installing', lineA1, 'mic after (s)', secsA, 'announced', await evaluate(`document.querySelector('.voice .sr-only[role=status]')?.textContent ?? ''`), 'hosts', hostSummary(tA)]))
+  const hostsA = hostSummary(tA)
+  const workerFiles = requests.filter((r) => r.worker && r.t >= tA).map((r) => new URL(r.url).pathname.split('/').pop())
+  console.log(JSON.stringify(['A fresh phone, emergency screen', 'first', stateA0, firstA, 'while installing', lineA1, 'mic after (s)', secsA, 'announced', await evaluate(`document.querySelector('.voice .sr-only[role=status]')?.textContent ?? ''`), 'hosts (page + worker)', hostsA, 'third-party hosts', Object.keys(hostsA).filter((h) => h && h !== new URL(url).host)]))
+  console.log(JSON.stringify(['A worker fetched', [...new Set(workerFiles)]]))
   await shot('v2-voice-autoready-360.png')
 
   // B. Settings agrees with no tap, and the LEARN card is gone once it is done.
@@ -159,12 +174,12 @@ async function main() {
   if (stateB !== 'ready') throw new Error('voice did not become ready')
 
   // C. Emergency path again: speak, get the taps pre-filled, confirm.
-  const speak = async (label) => {
+  const speak = async (label, recordMs = 5000) => {
     await open('#/now/animal')
     await waitFor(`document.querySelector('[data-voice]')?.dataset.voice === 'ready'`, 15000, label + ' ready')
     await evaluate(`document.querySelector('[data-voice=ready] .voice-btn').click()`)
     await waitFor(`document.querySelector('[data-voice]')?.dataset.voice === 'recording'`, 10000, label + ' recording')
-    await sleep(5000)
+    await sleep(recordMs)
     await shot(`v2-voice-${label}-listening.png`)
     await evaluate(`document.querySelector('[data-voice=recording] .voice-btn').click()`)
     const t0 = Date.now()
@@ -175,6 +190,11 @@ async function main() {
     await shot(`v2-voice-${label}-done.png`)
     return out
   }
+  // C0. Tap the mic the moment it shows and stop fast: the transcription is asked for while the model
+  //     is still warming up, and must still get its own answer (not the warm-up's "ready").
+  const race = await speak('race', 1500)
+  console.log(JSON.stringify(['C0 mic tapped during warm-up', race.state, race.error ?? '']))
+
   const tC = Date.now()
   const c = await speak('online')
   console.log(JSON.stringify(['C hosts during speak', hostSummary(tC)]))

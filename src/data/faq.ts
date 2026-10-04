@@ -14,13 +14,13 @@ export const faqs: Faq[] = [
   {
     id: 'how-soon',
     q: 'How soon after a bite do I need the vaccine?',
-    a: 'As soon as possible - the same day. There is no safe waiting period. If you are already late by days or weeks, it is still not too late: NCDC says treatment must be given to anyone who reports late, because rabies can take months to appear.',
+    a: 'As soon as possible – the same day. There is no safe waiting period. If you are already late by days or weeks, it is still not too late: NCDC says treatment must be given to anyone who reports late, because rabies can take months to appear.',
     sources: ['WHO_FS', 'NCDC_2019'],
   },
   {
     id: 'free',
     q: 'Is the vaccine free?',
-    a: 'It depends on the state. Under the National Rabies Control Programme many state governments give the anti-rabies vaccine free at government hospitals and Anti-Rabies Clinics. Call 104 or ask at the nearest government hospital. Never skip the vaccine because of cost - ask for the government facility.',
+    a: 'It depends on the state. Under the National Rabies Control Programme many state governments give the anti-rabies vaccine free at government hospitals and Anti-Rabies Clinics. Call 104 or ask at the nearest government hospital. Never skip the vaccine because of cost – ask for the government facility.',
     sources: ['NCDC_2019'],
   },
   {
@@ -32,7 +32,7 @@ export const faqs: Faq[] = [
   {
     id: 'vaccinated-dog',
     q: 'The dog is vaccinated. Do I still need the vaccine?',
-    a: 'Yes - start today. If the dog can be watched and stays healthy for 10 days, the doctor may stop the course. Only a doctor decides that, and only after treatment has started.',
+    a: 'Yes – start today. If the dog can be watched and stays healthy for 10 days, the doctor may stop the course. Only a doctor decides that, and only after treatment has started.',
     sources: ['WHO_TRS', 'NCDC_2019'],
   },
   {
@@ -44,7 +44,7 @@ export const faqs: Faq[] = [
   {
     id: 'side-effects',
     q: 'Does the vaccine have side effects?',
-    a: 'Modern cell-culture vaccines are safe. Side effects are usually mild - soreness or redness where it was given, sometimes a mild fever or headache. Rabies itself is fatal.',
+    a: 'Modern cell-culture vaccines are safe. Side effects are usually mild – soreness or redness where it was given, sometimes a mild fever or headache. Rabies itself is fatal.',
     sources: ['WHO_FS', 'WHO_TRS'],
   },
   {
@@ -56,7 +56,7 @@ export const faqs: Faq[] = [
   {
     id: 'rig',
     q: 'What is rabies immunoglobulin (RIG)? Do I need it?',
-    a: 'RIG gives ready-made antibodies injected into and around the wound, protecting you while the vaccine builds your own immunity. WHO recommends it for Category III exposures - bites that break the skin or bleed, licks on wounds or on the eyes, nose or mouth, and bat contact. Monoclonal antibodies are an alternative. The doctor decides.',
+    a: 'RIG gives ready-made antibodies injected into and around the wound, protecting you while the vaccine builds your own immunity. WHO recommends it for Category III exposures – bites that break the skin or bleed, licks on wounds or on the eyes, nose or mouth, and bat contact. Monoclonal antibodies are an alternative. The doctor decides.',
     sources: ['WHO_TRS'],
   },
   {
@@ -68,7 +68,7 @@ export const faqs: Faq[] = [
   {
     id: 'dog-approaches',
     q: 'What should I do if a dog runs at me?',
-    a: 'Do not run - running makes a dog chase. Stand still with your arms at your sides, look away, and let it lose interest, then back away slowly. If you are knocked down, curl up and protect your face and neck. Do not touch dogs that are eating, sleeping, hurt or with puppies.',
+    a: 'Do not run – running makes a dog chase. Stand still with your arms at your sides, look away, and let it lose interest, then back away slowly. If you are knocked down, curl up and protect your face and neck. Do not touch dogs that are eating, sleeping, hurt or with puppies.',
     sources: ['WHO_FS'],
   },
 ]

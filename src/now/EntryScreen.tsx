@@ -14,8 +14,8 @@ interface Props {
  * Red is first and taller because if someone is standing there with a fresh bite, the correct
  * action is to start washing - not to answer questions. Tapping red starts the 15 minutes at once
  * and lands on the wash step; someone who never touches the second button has still been helped
- * correctly. The second button is for the other case: bite happened a while ago, they are on the
- * way to a clinic, and now they want to know what to do next.
+ * correctly. The second button is for telling what happened, by voice or taps; its first answer
+ * starts the 15 minutes too, and the rest is asked while washing (see washFirst.ts).
  */
 export default function EntryScreen({ resumeStep }: Props) {
   const timer = useTimer()

@@ -13,23 +13,26 @@ and the date it was read.
   gets it wrong either sends someone home to die or floods a clinic.
 - **No AI writes anything you read.** Not a step, not a warning, not a word of the report.
 - **Your data stays on the phone.** No account, no analytics, no server for your data. The handover
-  record is never uploaded; copy, share and read-aloud each start from your own tap. The one thing
-  that can leave is a few typed or spoken words the app couldn't place, sent to the optional online
-  matcher (on by default, one switch in Settings to turn off). The voice model is downloaded once
-  from Hugging Face; that request sends nothing about you.
+  record is never uploaded; copy, share and read-aloud each start from your own tap. Nothing goes
+  to a third party: even the voice model is served from this site. The one thing that can ever
+  leave is a few typed or spoken words the app couldn't place, and only if you switch on Online
+  help in Settings (it is off by default).
 
 ## What it does
 
 It washes, it times, it records, it hands over.
 
 1. **Two buttons.** Red *Start the 15 minutes* starts the wound-wash timer at once — WHO says wash
-   with soap and running water for 15 minutes. Grey *Tell me what happened* is for afterwards: on
-   the way to a clinic, wanting to know what next.
+   with soap and running water for 15 minutes. Grey *Tell me what happened* takes voice or taps,
+   and its first answer (the animal) starts the same 15 minutes and opens the wash screen.
 2. **The 15-minute timer** keeps true time through a locked screen, a backgrounded app and a reload.
 3. **Any mammal** — dog, cat, monkey, rat, bat, mongoose, livestock, person — with what the sources
    say about that animal, verbatim and cited. Snakes, insects and spiders: one line, call 108.
-4. **Where is the bite**, and a few facts for the clinic — when it happened, bite / scratch / lick,
-   skin broken, bleeding, stray or known, anything put on the wound, stitched or open.
+4. **Questions while washing, never before it.** Under the timer, *Answer a few questions while you
+   wash* asks where the bite is and a few facts for the clinic — when it happened, bite / scratch /
+   lick, skin broken, bleeding, stray or known, anything put on the wound, stitched or open. Every
+   question screen says *Keep washing while you answer* and has *Back to washing*; *Next* on the
+   wash screen stays quiet until the 15 minutes are done.
 5. **"I'm at the clinic"** — always one tap away — opens the **incident record**: time of bite and
    minutes since, when washing started and for how long, the animal, the site, what was done and,
    just as important, what was *not* done ("No turmeric, chilli, oil or other substance applied").
@@ -63,7 +66,8 @@ No screen waits on a network call. No spinner can be left spinning. The optional
 | Optional online matcher | `api/match.ts`, `src/voice/online.ts`, `src/voice/onlineSchema.ts` |
 
 **Voice** (`src/voice/`) installs itself. Once the app is saved for offline, Whisper tiny (English)
-and its runtime, about 70 MB, download once in the background, so someone who can't see the buttons
+and its runtime, about 67 MB, download once in the background from this site (the model is in
+`public/models`, an unmodified, pinned copy under Apache-2.0), so someone who can't see the buttons
 can speak without ever finding Settings (the owner's decision on 4 Oct, replacing "download only on
 a tap"). Settings shows the progress and has Stop and Remove; either one keeps it from downloading
 by itself again on that phone. Once it is here, a tap records up to ten seconds and the phone
@@ -160,10 +164,11 @@ nextQuestion}`, validated on the server and again on the phone; anything outside
 confidence below 0.75, any error or a reply slower than 2.5 seconds, and the app falls back to its
 own tap list without telling anyone. It never writes a word the user reads.
 
-It is **on by default** (the owner's decision) and one switch turns it off: Settings → Online help
-for unclear answers. It sends only the person's words — never the report, never audio — and the
-screen says so under the type box. `scripts/qa_v2.mjs` checks that the only request that ever
-leaves is `POST /api/match` carrying `{text}`; with the switch off, there is none.
+It is **off by default** (the owner's decision on 4 Oct, after an audit: "nothing leaves the phone"
+should hold with no exception unless someone opts in) and one switch turns it on: Settings → Online
+help for unclear answers. It sends only the person's words — never the report, never audio — and
+the screen says so under the type box. With it off, `scripts/qa_v2.mjs` finds no request to `/api`
+at all; switched on, the only request is `POST /api/match` carrying `{text}`.
 
 To turn it on for a deployment:
 

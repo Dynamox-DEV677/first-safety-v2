@@ -4,8 +4,9 @@ import { validateMatch, type OnlineMatch } from './onlineSchema'
 /**
  * Optional online matcher - the bonus layer that may not be there (§3, §8).
  *
- * Used only when ALL of these hold: Online help is on in Settings (on by default - the owner's
- * choice; it sends only the typed or spoken words, never the report or audio, and the screen says
+ * Used only when ALL of these hold: Online help is switched on in Settings (off by default, the
+ * owner's decision on 4 Oct, so "nothing leaves the phone" holds with no exception unless someone
+ * opts in; it sends only the typed or spoken words, never the report or audio, and the screen says
  * so); the phone is online; the offline matcher was not confident. It gets 2.5 seconds in total. Any error, timeout, non-200 or invalid answer returns
  * null and the app silently uses its own tap list. It never generates a word the user reads.
  *
@@ -16,7 +17,7 @@ export const ONLINE_MATCH_KEY = 'fs.onlineMatch'
 export const ONLINE_TIMEOUT_MS = 2500
 
 export function onlineMatchEnabled(): boolean {
-  return readLS<boolean>(ONLINE_MATCH_KEY, true) !== false
+  return readLS<boolean>(ONLINE_MATCH_KEY, false) === true
 }
 
 export async function askOnlineMatcher(text: string, timeoutMs = ONLINE_TIMEOUT_MS): Promise<OnlineMatch | null> {

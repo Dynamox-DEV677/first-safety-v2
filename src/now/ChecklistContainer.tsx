@@ -3,6 +3,7 @@ import { steps, triage, type DogKnown } from '../data/nowMode'
 import { href } from '../hooks/useRoute'
 import { useLocalStorage, writeLS } from '../hooks/useLocalStorage'
 import { markStepCompleted } from '../hooks/useBiteRecord'
+import { useTimer } from '../hooks/useTimer'
 import NotFound from '../components/NotFound'
 import StepCard from './StepCard'
 
@@ -10,6 +11,7 @@ import StepCard from './StepCard'
 export default function ChecklistContainer({ step }: { step: number }) {
   const current = steps.find((s) => s.id === step)
   const [known] = useLocalStorage<DogKnown | null>('fs.triage', null)
+  const timer = useTimer()
 
   useEffect(() => {
     if (!current) return
@@ -24,6 +26,8 @@ export default function ChecklistContainer({ step }: { step: number }) {
   const isLast = current.id === steps.length
   const next = isLast ? '/now/go' : `/now/step/${current.id + 1}`
   const prev = current.id === 1 ? '/now/triage' : `/now/step/${current.id - 1}`
+  // The wash screen says keep washing, so Next stays quiet until the 15 minutes are done.
+  const washing = !!current.timerSeconds && timer.status !== 'done'
 
   return (
     <div className="page-main" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -43,7 +47,7 @@ export default function ChecklistContainer({ step }: { step: number }) {
           <a className="btn btn-ghost" href={href(prev)}>
             Back
           </a>
-          <a className="btn btn-solid" href={href(next)}>
+          <a className={`btn ${washing ? '' : 'btn-solid'}`} href={href(next)} data-next={washing ? 'quiet' : 'solid'}>
             {isLast ? 'Where to go' : 'Next'}
           </a>
         </div>

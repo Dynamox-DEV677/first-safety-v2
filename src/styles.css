@@ -222,6 +222,7 @@ h1.title {
 .btn[disabled] { opacity: 0.35; cursor: default; }
 .btn-col { flex-direction: column; gap: 4px; }
 .btn-col .sub { font-size: 0.95rem; font-weight: 500; color: var(--muted); }
+.while-washing { margin: 0 0 24px; }
 .btn.on { background: var(--ink); color: var(--bg); }
 .btn-row { display: flex; gap: 12px; width: 100%; }
 /* .btn sets width:100%, so any flex child here must get an explicit basis and be allowed to

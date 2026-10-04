@@ -45,6 +45,8 @@ export const L = {
   SKIN_BROKEN: { en: 'SKIN BROKEN', hi: 'त्वचा कटी या फटी' },
   DONE: { en: 'DONE BEFORE ARRIVAL', hi: 'अस्पताल पहुँचने से पहले किया गया' },
   NOT_DONE: { en: 'NOT DONE / APPLIED', hi: 'नहीं किया गया / लगाया गया' },
+  // Used instead of NOT_DONE when part of it is unknown: the heading must not claim a negative.
+  WOUND_CARE: { en: 'SUBSTANCES / WOUND CLOSURE', hi: 'घाव पर लगाई चीज़ें / घाव बंद करना' },
   PRIOR_RABIES: { en: 'PRIOR RABIES VACCINE', hi: 'पहले रेबीज़ का टीका' },
   PRIOR_TETANUS: { en: 'PRIOR TETANUS', hi: 'पहले टिटनेस का टीका' },
   COURSE: { en: 'RABIES DOSES THIS COURSE', hi: 'इस कोर्स में रेबीज़ के टीके' },
@@ -246,7 +248,9 @@ export function buildIncidentRecord(i: RecordInput): IncidentRecord {
   if (!subs.length) notDone.push(`Substances on the wound: ${UNKNOWN}`)
   if (bite?.closure === 'open' || bite?.closure === 'bandaged') notDone.push('No stitches, no wound closure')
   else if (!bite?.closure) notDone.push(`Stitches or wound closure: ${UNKNOWN}`)
-  sections.push({ id: 'notdone', list: { key: 'NOT_DONE', items: notDone } })
+  // "NOT DONE" is only worth saying when it is a real negative; with gaps the heading stays neutral.
+  const careUnknown = !subs.length || !bite?.closure
+  sections.push({ id: 'notdone', list: { key: careUnknown ? 'WOUND_CARE' : 'NOT_DONE', items: notDone } })
 
   // ---- history ----
   // The saved profile belongs to the phone's owner. It is used only when the person bitten is the
@@ -284,7 +288,7 @@ export function buildIncidentRecord(i: RecordInput): IncidentRecord {
         row('NAME', med.name),
         row('AGE', med.ageYears !== null ? `${med.ageYears} years` : ''),
         row('WEIGHT', med.weightKg !== null ? `${med.weightKg} kg` : ''),
-        row('BLOOD_GROUP', med.bloodGroup),
+        row('BLOOD_GROUP', bloodGroupText(med.bloodGroup)),
         row('ALLERGIES', med.allergies),
         row('MEDICINES', med.medicines),
         row('CONDITIONS', med.conditions),
@@ -293,6 +297,21 @@ export function buildIncidentRecord(i: RecordInput): IncidentRecord {
   }
 
   return { generatedAt: now, sections }
+}
+
+/**
+ * "o+" → "O positive (O+)". Read at a counter, a lowercase o can pass for a zero, so the group is
+ * spelled out. Anything that is not a recognisable ABO/Rh group is shown exactly as typed.
+ */
+export function bloodGroupText(raw: string): string {
+  const typed = raw.trim()
+  const s = typed.toUpperCase().replace(/\s+/g, '').replace(/[−–]/g, '-')
+  const m = /^(AB|A|B|O|0)(\+VE|-VE|\+|-|POSITIVE|POS|NEGATIVE|NEG)?$/.exec(s)
+  if (!m) return typed
+  const group = m[1] === '0' ? 'O' : m[1]
+  if (!m[2]) return group
+  const positive = m[2].startsWith('+') || m[2].startsWith('POS')
+  return `${group} ${positive ? 'positive' : 'negative'} (${group}${positive ? '+' : '−'})`
 }
 
 /** Contacts are never printed into the shareable record (no raw numbers on shareable screens). */

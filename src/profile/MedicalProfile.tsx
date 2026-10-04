@@ -60,7 +60,7 @@ export default function MedicalProfile() {
           </button>
         ))}
       </div>
-      <Field id="prev" label="Earlier doses - dates and places" style={{ marginTop: 16 }}>
+      <Field id="prev" label="Earlier doses – dates and places" style={{ marginTop: 16 }}>
         <textarea id="prev" className="inp" rows={3} value={m.previousRabiesDoses} onChange={(e) => set('previousRabiesDoses', e.target.value)} placeholder="e.g. 3 doses in 2024 at the district hospital" />
       </Field>
       <p className="lbl" style={{ marginTop: 20 }}>

@@ -44,9 +44,11 @@ It washes, it times, it records, it hands over.
 
 It is built for a clinic waiting room with one bar of signal. Everything runs on the phone: no
 account, no server for anyone's data, and the record never leaves the device. Voice input runs a small speech model
-(Whisper tiny) on the phone itself, and it is only downloaded when someone chooses to, on the calm
-LEARN side, never during an emergency. Typing works without it, in English, Hinglish, Hindi or
-Tamil spellings. For words the app can't place there is an online helper, on by default, bounded
+(Whisper tiny) on the phone itself. It downloads by itself, once, in the background, the first time
+the app is opened with internet, so someone who cannot see the buttons can still speak to it.
+Nothing on screen waits for it: until it arrives the buttons and a type box work, and the moment it
+does the mic appears and a screen reader announces it. Typing works without it, in English,
+Hinglish, Hindi or Tamil spellings. For words the app can't place there is an online helper, on by default, bounded
 to 2.5 seconds and a fixed set of answers. It sends only those words, the screen says so, one
 switch in Settings turns it off, and the app is complete without it.
 
@@ -69,6 +71,8 @@ There are 73 automated logic tests, plus browser tests on a 360-pixel-wide phone
 - every screen working with the network cut
 - nothing leaving the device during a full run except the online helper's lookup, which carries
   only the typed words
+- on a fresh phone, the voice model installing itself while the emergency screen's buttons work,
+  then the mic appearing there with no tap, and speech understood with the network cut
 
 It was also tested on a real Android phone, outdoors. *(Do this on 4 Oct, then keep or edit this
 line.)*

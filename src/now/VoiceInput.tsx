@@ -5,11 +5,14 @@ import { updateBiteRecord } from '../hooks/useBiteRecord'
 import {
   MAX_RECORD_SECONDS,
   blobToSamples,
+  getVoiceInstall,
   isVoiceReady,
+  onVoiceInstall,
   startRecording,
   transcribeSamples,
   voiceSupported,
   warmVoice,
+  type InstallPhase,
   type Recording,
 } from '../voice'
 import { matchTranscript, type VoiceMatch } from '../voice/match'
@@ -25,8 +28,10 @@ interface Props {
 /**
  * "Speak instead" / "Type instead". Sits above the animal buttons and never replaces them (§9).
  *
- * If the speech model is not on the phone, nothing downloads and nothing spins: one line says so
- * and the tap list is right there. Typing works with no model at all. Whatever is said or typed goes
+ * If the speech model is not on the phone yet, nothing here waits for it: one line says so and the
+ * tap list is right there. The model installs itself in the background (`autoInstallVoice`); the
+ * moment it is ready the mic appears and a screen reader hears so, without moving focus out of the
+ * type box. Typing works with no model at all. Whatever is said or typed goes
  * through the offline matcher; if that is not sure and the person turned on online help, the online
  * matcher gets 2.5 seconds; otherwise the tap list is narrowed to the likeliest options. The words
  * are always shown back, so a mishearing can be seen and corrected.
@@ -39,6 +44,8 @@ export default function VoiceInput({ onNotMammal }: Props) {
   const [typed, setTyped] = useState('')
   const [error, setError] = useState<'mic' | 'model' | ''>('')
   const [voiceOk, setVoiceOk] = useState(false)
+  const [install, setInstall] = useState<InstallPhase>(() => getVoiceInstall().phase)
+  const [announce, setAnnounce] = useState('')
   const rec = useRef<Recording | null>(null)
   const timers = useRef<number[]>([])
 
@@ -68,6 +75,18 @@ export default function VoiceInput({ onNotMammal }: Props) {
       rec.current?.cancel()
     }
   }, [])
+
+  useEffect(() => onVoiceInstall((s) => setInstall(s.phase)), [])
+
+  // The download finished while this screen was open: offer the mic now, and say so out loud.
+  useEffect(() => {
+    if (install !== 'ready') return
+    setVoiceOk(true)
+    if (phase === 'not-ready') {
+      setPhase('ready')
+      setAnnounce('Voice is ready. Speak instead is now above the buttons.')
+    }
+  }, [install, phase])
 
   const idlePhase = (): Phase => (voiceOk ? 'ready' : voiceSupported() ? 'not-ready' : 'no-voice')
 
@@ -155,8 +174,16 @@ export default function VoiceInput({ onNotMammal }: Props) {
 
   if (phase === 'checking') return null
 
+  // Same element in the "not ready" and "ready" layouts, so the announcement is read and the type box
+  // keeps focus when the mic appears.
+  const live = (
+    <p key="live" className="sr-only" role="status" aria-live="polite">
+      {announce}
+    </p>
+  )
+
   const typeBox = (
-    <form className="type-box" onSubmit={submitTyped}>
+    <form key="type" className="type-box" onSubmit={submitTyped}>
       <label className="lbl" htmlFor="what-happened">
         Or type what happened
       </label>
@@ -185,7 +212,14 @@ export default function VoiceInput({ onNotMammal }: Props) {
   if (phase === 'no-voice' || phase === 'not-ready') {
     return (
       <div className="voice" data-voice={phase}>
-        {phase === 'not-ready' && <p className="voice-note">Voice needs a one-time download. Tap answers for now.</p>}
+        {live}
+        {phase === 'not-ready' && (
+          <p key="note" className="voice-note">
+            {install === 'downloading'
+              ? 'Voice is downloading. Tap answers for now.'
+              : 'Voice needs a one-time download. Tap answers for now.'}
+          </p>
+        )}
         {typeBox}
       </div>
     )
@@ -194,7 +228,8 @@ export default function VoiceInput({ onNotMammal }: Props) {
   if (phase === 'ready') {
     return (
       <div className="voice" data-voice="ready">
-        <button type="button" className="btn voice-btn" onClick={start}>
+        {live}
+        <button key="mic" type="button" className="btn voice-btn" onClick={start}>
           <span className="ico" aria-hidden="true">
             🎙
           </span>
@@ -203,7 +238,9 @@ export default function VoiceInput({ onNotMammal }: Props) {
             <small>Say what happened, up to {MAX_RECORD_SECONDS} seconds</small>
           </span>
         </button>
-        <p className="small">Audio stays on this phone. Or tap the buttons below.</p>
+        <p key="mic-note" className="small">
+          Audio stays on this phone. Or tap the buttons below.
+        </p>
         {typeBox}
       </div>
     )

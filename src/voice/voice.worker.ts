@@ -1,9 +1,9 @@
 /**
  * Speech-to-text worker. Runs Whisper tiny (English) entirely on this phone with transformers.js.
  *
- * Nothing here is ever loaded on the emergency path unless the model is already cached: the
- * main thread checks the caches first and only then creates this worker. The one time files
- * come from the network is when the patient taps "Prepare voice" in Settings.
+ * Created by the one-time background install (after the app is saved for offline), and on the
+ * emergency path only once the main thread has checked that every file is already cached. That
+ * install is the one time files come from the network.
  *
  * Audio in, text out. No medical logic lives here.
  */
@@ -18,7 +18,7 @@ env.useBrowserCache = true
 
 // The ONNX runtime ships with the app (Vite emits these two files next to this worker) instead of
 // coming from a CDN, so the only third party voice ever talks to is the model host, once.
-// transformers.js fetches both through its cache, so they are offline after "Prepare voice".
+// transformers.js fetches both through its cache, so they are offline after the one-time install.
 const ortWasm = env.backends.onnx.wasm
 if (ortWasm) {
   ortWasm.wasmPaths = {

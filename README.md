@@ -15,7 +15,8 @@ and the date it was read.
 - **Your data stays on the phone.** No account, no analytics, no server for your data. The handover
   record is never uploaded; copy, share and read-aloud each start from your own tap. The one thing
   that can leave is a few typed or spoken words the app couldn't place, sent to the optional online
-  matcher (on by default, one switch in Settings to turn off).
+  matcher (on by default, one switch in Settings to turn off). The voice model is downloaded once
+  from Hugging Face; that request sends nothing about you.
 
 ## What it does
 
@@ -61,13 +62,17 @@ No screen waits on a network call. No spinner can be left spinning. The optional
 | Voice and typing, on the phone | `src/voice/`, `src/now/VoiceInput.tsx`, `src/components/VoiceOffer.tsx` |
 | Optional online matcher | `api/match.ts`, `src/voice/online.ts`, `src/voice/onlineSchema.ts` |
 
-**Voice** (`src/voice/`) is optional and never downloads during an emergency. On the LEARN home
-(or Settings) one tap downloads Whisper tiny (English) and its runtime, about 70 MB, once; after
-that a tap records up to ten seconds and the phone transcribes it in a worker. Typing works with no
-download at all. An explicit synonym table (English, Hinglish, Hindi, Tamil — *kutta*, *billi*,
+**Voice** (`src/voice/`) installs itself. Once the app is saved for offline, Whisper tiny (English)
+and its runtime, about 70 MB, download once in the background, so someone who can't see the buttons
+can speak without ever finding Settings (the owner's decision on 4 Oct, replacing "download only on
+a tap"). Settings shows the progress and has Stop and Remove; either one keeps it from downloading
+by itself again on that phone. Once it is here, a tap records up to ten seconds and the phone
+transcribes it in a worker. Typing works with no download at all. An explicit synonym table (English, Hinglish, Hindi, Tamil — *kutta*, *billi*,
 *bandar*, *naai*, *poonai*, कुत्ता, நாய்…) turns the words into the same taps the patient could have
-made, shown back for confirmation. If the model isn't on the phone, the screen says *"Voice needs a
-one-time download. Tap answers for now."* and the buttons are right there.
+made, shown back for confirmation. Nothing on screen waits for the model: until it is here the
+emergency screen says *"Voice is downloading. Tap answers for now."* (or *"Voice needs a one-time
+download. Tap answers for now."* without a connection) and the buttons are right there; the moment
+it is ready the mic appears and a screen reader announces it.
 
 ## Medical safety
 
@@ -204,7 +209,7 @@ npx vite preview --port 4180 --strictPort   # serve dist/ with the service worke
 ```bash
 npm run test:logic                                    # matcher, schema, serverless function (fake Gemini), incident record
 node scripts/qa_v2.mjs http://localhost:4180/         # every v2 screen at 360/390/414, 7:1 contrast both themes, network, offline
-node scripts/qa_voice.mjs http://localhost:4180/      # voice with a fake microphone: no-model path, opt-in download, online and offline
+node scripts/qa_voice.mjs http://localhost:4180/      # voice with a fake microphone: installs itself, online and offline, remove, stop
 node scripts/qa_timer_v2.mjs http://localhost:4180/   # timer through a frozen (locked/backgrounded) page and a reload
 ```
 
@@ -240,7 +245,7 @@ src/voice/       on-device speech (worker), the synonym matcher, the optional on
 src/learn/       cards, FAQ, videos, bookmarks
 src/quiz/        quiz home and play
 src/profile/     profile, medical profile, vaccination tracker, achievements
-src/components/  header, bottom nav, footer, settings, sources, sourced lines, tel link, voice offer
+src/components/  header, bottom nav, footer, settings, sources, sourced lines, tel link, voice status
 scripts/         QA in headless Chrome, logic tests, icon generator
 docs/            VERIFY.md (the checklist), DEMO.md (the video), SUBMISSION.md (draft)
 ```

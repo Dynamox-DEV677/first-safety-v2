@@ -2,6 +2,7 @@ import { useEffect, type ReactElement } from 'react'
 import { match, useRoute } from './hooks/useRoute'
 import { readLS, writeLS } from './hooks/useLocalStorage'
 import { REMINDER_KEY, notifyIfDue, type ReminderSettings, type VaccineRecord } from './hooks/useVaccine'
+import { autoInstallVoice } from './voice'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import BottomNav from './components/BottomNav'
@@ -38,6 +39,12 @@ export default function App() {
       readLS<ReminderSettings>(REMINDER_KEY, { enabled: false, lastNotified: '' }),
       (s) => writeLS(REMINDER_KEY, s),
     )
+  }, [])
+
+  // Voice installs itself in the background once the app is saved for offline, so someone who cannot
+  // see the buttons can speak without ever finding Settings. Nothing on screen waits for it.
+  useEffect(() => {
+    void autoInstallVoice()
   }, [])
 
   // The doctor's report has no app chrome at all: white page, nothing else.

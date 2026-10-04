@@ -8,8 +8,9 @@ it the wash timer running. Scan `first-safety-qr.png` (in this folder) or type
 
 - [ ] Open the site. In Chrome's menu, tap **Add to Home screen** (or **Install app**).
 - [ ] Open it from the home-screen icon. It should open full screen, with no browser bar.
-- [ ] Go to **Learn**. "Download voice input?" appears. Tap **Download voice input · about 70 MB**
-      and wait for "Ready · works offline". (Skip this if you won't demo voice.)
+- [ ] Leave the app open for a minute or two. Voice downloads by itself (about 70 MB): **Learn**
+      shows "Getting voice input ready" while it runs, then **Settings → Voice input** says
+      "Ready · works offline".
 - [ ] Close the app completely (swipe it away).
 
 ## Aeroplane mode on, for everything below

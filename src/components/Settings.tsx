@@ -113,8 +113,8 @@ export default function Settings() {
 
       <h2 className="h2">Voice input</h2>
       <p className="body">
-        Optional. Say what happened instead of tapping it. The speech model runs on this phone and audio never leaves
-        it. English only for now.
+        Say what happened instead of tapping it. The speech model downloads by itself, once, then runs on this phone,
+        and audio never leaves it. English only for now.
       </p>
       <VoiceSettings />
 

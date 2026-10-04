@@ -1,21 +1,28 @@
-import { writeLS } from '../hooks/useLocalStorage'
+import { readLS, writeLS } from '../hooks/useLocalStorage'
+import voiceWorkerUrl from './voice.worker.ts?worker&url'
 
 /**
  * Voice input, main-thread side. Whisper tiny (English) runs on the phone in a worker.
  *
  * Two rules the rest of the app relies on:
- * 1. Nothing downloads on the emergency path. `isVoiceReady()` only inspects the caches, and the
- *    worker is only created when that says every file is already here. The one place files come
- *    from the network is `prepareVoice()`, behind an explicit tap in Settings.
+ * 1. Nothing waits for voice. The model installs itself once, in the background, after the app is
+ *    saved for offline (`autoInstallVoice`). Darshan decided this on 4 Oct 2026: someone who cannot
+ *    see the buttons must be able to speak without first finding Settings. The emergency screens
+ *    never start or wait on a download: `isVoiceReady()` only inspects the caches, they show the
+ *    buttons until it says yes, and the mic appears the moment it does.
  * 2. Voice never replaces the buttons. It pre-fills the same taps, and the patient confirms them.
  */
 export const VOICE_KEY = 'fs.voice'
+/** false once someone stops or removes voice on this phone: it never downloads by itself again there. */
+export const VOICE_AUTO_KEY = 'fs.voiceAuto'
 export const VOICE_MODEL = 'Xenova/whisper-tiny.en'
-/** Model (about 41 MB) plus the speech runtime (about 28 MB), fetched once from Settings. */
+/** Model (about 41 MB) plus the speech runtime (about 28 MB), fetched once. */
 export const VOICE_DOWNLOAD_MB = 70
 export const MAX_RECORD_SECONDS = 10
 /** Service-worker runtime cache that keeps the worker script itself (see vite.config.ts). */
 const RUNTIME_CACHE = 'fs-voice'
+/** Longest a transcription may take before the screen gives up and points at the buttons. */
+const TRANSCRIBE_TIMEOUT_MS = 90_000
 
 export interface VoiceState {
   preparedAt: string
@@ -61,10 +68,11 @@ export async function isVoiceReady(): Promise<boolean> {
     const has = (suffix: string) => model.some((u) => u.includes(VOICE_MODEL) && u.endsWith(suffix))
     if (!has('encoder_model_quantized.onnx') || !has('decoder_model_merged_quantized.onnx')) return false
     if (!model.some((u) => u.endsWith('.wasm'))) return false
-    // the worker script is loaded by the browser, not by transformers.js, so the service worker keeps it
+    // The worker script is loaded by the browser, not by transformers.js, so the service worker keeps
+    // it. Check this build's exact file: after an app update the old one is no use offline.
     if (!names.includes(RUNTIME_CACHE)) return false
-    const runtime = await cacheUrls(RUNTIME_CACHE)
-    return runtime.some((u) => /voice\.worker-[^/]+\.js$/.test(u))
+    const runtime = await caches.open(RUNTIME_CACHE)
+    return !!(await runtime.match(new URL(voiceWorkerUrl, location.href).href))
   } catch {
     return false
   }
@@ -79,8 +87,14 @@ type WorkerMsg =
 let worker: Worker | null = null
 
 function getWorker(): Worker {
-  worker ??= new Worker(new URL('./voice.worker.ts', import.meta.url), { type: 'module' })
+  worker ??= new Worker(voiceWorkerUrl, { type: 'module' })
   return worker
+}
+
+/** A worker that failed or hung is thrown away, so the next try starts fresh instead of waiting on it. */
+function dropWorker(w: Worker): void {
+  w.terminate()
+  if (worker === w) worker = null
 }
 
 function request<T extends WorkerMsg['type']>(
@@ -88,12 +102,15 @@ function request<T extends WorkerMsg['type']>(
   want: T,
   onProgress?: (p: Progress) => void,
   transfer: Transferable[] = [],
+  timeoutMs = 0,
 ): Promise<Extract<WorkerMsg, { type: T }>> {
   return new Promise((resolve, reject) => {
     const w = getWorker()
+    let timer = 0
     const cleanup = () => {
       w.removeEventListener('message', onMessage)
       w.removeEventListener('error', onError)
+      window.clearTimeout(timer)
     }
     const onMessage = (e: MessageEvent<WorkerMsg>) => {
       const m = e.data
@@ -108,18 +125,137 @@ function request<T extends WorkerMsg['type']>(
     }
     const onError = (e: ErrorEvent) => {
       cleanup()
+      dropWorker(w)
       reject(new Error(e.message || 'voice worker failed'))
     }
     w.addEventListener('message', onMessage)
     w.addEventListener('error', onError)
+    if (timeoutMs) {
+      timer = window.setTimeout(() => {
+        cleanup()
+        dropWorker(w)
+        reject(new Error('voice timed out'))
+      }, timeoutMs)
+    }
     w.postMessage(post, transfer)
   })
 }
 
-/** Settings only. Downloads the model and runtime once, reporting progress, then records readiness. */
-export async function prepareVoice(onProgress: (p: Progress) => void): Promise<void> {
+/** Downloads the model and runtime (or loads them from the cache), reporting progress. */
+async function prepareVoice(onProgress: (p: Progress) => void): Promise<void> {
   await request({ type: 'prepare' }, 'ready', onProgress)
   writeLS<VoiceState>(VOICE_KEY, { preparedAt: new Date().toISOString() })
+}
+
+export type InstallPhase = 'idle' | 'downloading' | 'ready' | 'error'
+
+export interface InstallState {
+  phase: InstallPhase
+  progress: Progress | null
+  error: '' | 'network' | 'not-kept' | 'failed'
+}
+
+let install: InstallState = { phase: 'idle', progress: null, error: '' }
+const watchers = new Set<(s: InstallState) => void>()
+
+function setInstall(patch: Partial<InstallState>): void {
+  install = { ...install, ...patch }
+  watchers.forEach((w) => w(install))
+}
+
+/** The one shared download, as Settings, the LEARN card and the emergency screen all see it. */
+export function getVoiceInstall(): InstallState {
+  return install
+}
+
+export function onVoiceInstall(watch: (s: InstallState) => void): () => void {
+  watchers.add(watch)
+  return () => {
+    watchers.delete(watch)
+  }
+}
+
+let inflight: Promise<boolean> | null = null
+/** Bumped by stop and remove, so a download they cancelled can never report back. */
+let run = 0
+
+/** Downloads voice once, however many screens ask. Resolves true when every file is kept offline. */
+export function installVoice(): Promise<boolean> {
+  if (inflight) return inflight
+  const mine = ++run
+  const current = () => mine === run
+  inflight = (async () => {
+    setInstall({ phase: 'downloading', progress: null, error: '' })
+    try {
+      await prepareVoice((progress) => current() && setInstall({ progress }))
+      const ok = await isVoiceReady()
+      if (current()) setInstall(ok ? { phase: 'ready', progress: null } : { phase: 'error', progress: null, error: 'not-kept' })
+      return ok
+    } catch (e) {
+      const network = !navigator.onLine || (e instanceof Error && /network|fetch|load/i.test(e.message))
+      if (current()) setInstall({ phase: 'error', progress: null, error: network ? 'network' : 'failed' })
+      return false
+    } finally {
+      if (current()) inflight = null
+    }
+  })()
+  return inflight
+}
+
+function cancel(): void {
+  writeLS(VOICE_AUTO_KEY, false)
+  run++
+  inflight = null
+  if (worker) dropWorker(worker)
+}
+
+/** Stops a download in progress and keeps voice from downloading by itself on this phone again. */
+export function stopVoiceInstall(): void {
+  cancel()
+  setInstall({ phase: 'idle', progress: null, error: '' })
+}
+
+let autoStarted = false
+
+/**
+ * Starts the one-time voice download by itself (rule 1 above). Waits until the service worker
+ * controls the page, so the app is saved for offline first and the worker script is kept on its way
+ * through, then pauses briefly so the first screen never competes with it. Does nothing if voice is
+ * already here, or if someone stopped or removed it on this phone. Without a connection it tries
+ * again when one comes back.
+ */
+export async function autoInstallVoice(): Promise<void> {
+  if (autoStarted) return
+  autoStarted = true
+  try {
+    if (!voiceSupported() || !('serviceWorker' in navigator)) return
+    await navigator.serviceWorker.ready
+    if (!navigator.serviceWorker.controller) {
+      await new Promise<void>((resolve) => {
+        navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true })
+        window.setTimeout(resolve, 20_000)
+      })
+    }
+    if (!navigator.serviceWorker.controller) return
+    await new Promise((r) => window.setTimeout(r, 1500))
+    if (await isVoiceReady()) {
+      if (install.phase === 'idle') setInstall({ phase: 'ready' })
+      return
+    }
+    if (readLS<boolean>(VOICE_AUTO_KEY, true) === false) return
+    if (!navigator.onLine || !(await installVoice())) {
+      window.addEventListener(
+        'online',
+        () => {
+          autoStarted = false
+          void autoInstallVoice()
+        },
+        { once: true },
+      )
+    }
+  } catch {
+    // voice is an accelerator; the buttons are always there
+  }
 }
 
 /** Loads the cached model in the background so the first tap answers faster. Call only when ready. */
@@ -129,12 +265,13 @@ export function warmVoice(): void {
   })
 }
 
+/** Deletes every voice file and keeps voice from downloading by itself on this phone again. */
 export async function removeVoice(): Promise<void> {
-  worker?.terminate()
-  worker = null
+  cancel()
   const names = await caches.keys()
   await Promise.all(names.filter((n) => /transformers/i.test(n) || n === RUNTIME_CACHE).map((n) => caches.delete(n)))
   writeLS(VOICE_KEY, null)
+  setInstall({ phase: 'idle', progress: null, error: '' })
 }
 
 export interface Recording {
@@ -203,6 +340,6 @@ export async function blobToSamples(blob: Blob): Promise<Float32Array> {
 }
 
 export async function transcribeSamples(audio: Float32Array): Promise<string> {
-  const m = await request({ type: 'transcribe', audio }, 'result', undefined, [audio.buffer])
+  const m = await request({ type: 'transcribe', audio }, 'result', undefined, [audio.buffer], TRANSCRIBE_TIMEOUT_MS)
   return m.text
 }

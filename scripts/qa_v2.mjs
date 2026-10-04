@@ -171,12 +171,12 @@ await go('#/report'); await sleep(300);
 window.confirm = () => true; clickText(/^New incident$/); await sleep(300);
 log.push(['N1 new incident', location.hash, 'record', ls('fs.biteRecord'), 'timer', ls('fs.timer'), 'clinic link gone', !document.querySelector('.clinic-link')]);
 
-// ---- §9 voice offer on the LEARN side; online help off by default ----
+// ---- §9 voice: this run opts out of the automatic download, so nothing is downloading and the
+// LEARN home shows no voice card; Settings offers the download by hand. Online help is on by default. ----
 await go('#/learn'); await sleep(500);
-log.push(['L1 learn offer', txt('.offer .h3'), 'download button', [...document.querySelectorAll('.offer button')].map(b => b.textContent.trim())]);
-clickText(/^Not now$/); await sleep(200);
-log.push(['L2 not now hides it', !document.querySelector('.offer')]);
+log.push(['L1 learn, no download running', 'voice card shown', !!document.querySelector('.offer')]);
 await go('#/settings'); await sleep(300);
+log.push(['L2 settings voice', document.querySelector('[data-voice-settings]')?.dataset.voiceSettings, txt('[data-voice-settings] .small')]);
 log.push(['O1 online help', [...document.querySelectorAll('[aria-label="Online help"] .btn')].map(b => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')), 'stored', localStorage.getItem('fs.onlineMatch')]);
 } catch (e) { log.push(['ERROR', String(e), location.hash, document.querySelector('[data-voice]')?.outerHTML?.slice(0, 300)]); }
 return log;
@@ -235,6 +235,9 @@ async function main() {
   await send('Page.enable')
   await send('Runtime.enable')
   await send('Network.enable')
+  // A fresh phone downloads the voice model by itself; that 70 MB is exercised in qa_voice.mjs.
+  // Opt this run out (as "Remove voice files" would), so its network and timing checks are about the app.
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem('fs.voiceAuto', 'false') } catch {}` })
   await size(360)
   await send('Page.navigate', { url })
   await sleep(1500)

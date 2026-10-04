@@ -1,8 +1,10 @@
 /**
  * Voice QA (§9) in headless Chrome with a fake microphone that plays a synthesized sentence.
- * Proves, on the production build: nothing voice-related downloads on the emergency path before
- * opt-in; opt-in from Settings downloads and caches the model and runtime; a recording is
- * transcribed on the device and pre-fills the taps; and the same flow works with the network cut.
+ * Proves, on the production build: on a fresh phone the emergency screen shows its buttons at once
+ * while the model installs itself in the background, and the mic appears on that same screen with
+ * no tap (and is announced); the model and runtime are cached; a recording is transcribed on the
+ * device and pre-fills the taps; the same works with the network cut; and after Remove or Stop,
+ * voice does not download by itself again.
  * Usage: node scripts/qa_voice.mjs [url] [wav] [chromePath] [screenshotDir]
  */
 import { spawn } from 'node:child_process'
@@ -128,33 +130,33 @@ async function main() {
   await send('Runtime.enable')
   await send('Network.enable')
   await send('Emulation.setDeviceMetricsOverride', { width: 360, height: 740, deviceScaleFactor: 2, mobile: true })
-  await send('Page.navigate', { url })
-  await sleep(1500)
 
-  // A. Emergency path on a fresh phone: voice is offered as "not set up" and nothing downloads.
+  // A. A fresh phone, opened straight onto the emergency voice screen: the buttons are there at once,
+  //    the model installs itself, and the mic appears on this same screen with no tap.
   const tA = Date.now()
-  await open('#/now/animal')
-  const stateA = await waitFor(`document.querySelector('[data-voice]')?.dataset.voice`, 10000, 'voice state')
-  await sleep(1500)
-  const cachesA = await caches()
-  console.log(JSON.stringify(['A fresh emergency path', 'voice', stateA, 'caches', Object.keys(cachesA), 'hosts since A', hostSummary(tA), 'no-model line', await evaluate(`document.querySelector('.voice-note')?.textContent ?? ''`), 'type box', await evaluate(`!!document.querySelector('#what-happened')`)]))
+  await send('Page.navigate', { url: url + '#/now/animal' })
+  const stateA0 = await waitFor(`document.querySelector('[data-voice]')?.dataset.voice`, 15000, 'voice state')
+  const firstA = { line: await evaluate(`document.querySelector('.voice-note')?.textContent ?? ''`), buttons: await evaluate(`document.querySelectorAll('main button').length`), typeBox: await evaluate(`!!document.querySelector('#what-happened')`) }
   await shot('v2-voice-notready-360.png')
+  const lineA1 = await waitFor(`(() => { const t = document.querySelector('.voice-note')?.textContent ?? ''; return /downloading/i.test(t) ? t : document.querySelector('[data-voice]')?.dataset.voice === 'ready' ? '(ready before the line was seen)' : null; })()`, 60_000, 'download starts')
+  await shot('v2-voice-downloading-360.png')
+  await waitFor(`document.querySelector('[data-voice]')?.dataset.voice === 'ready'`, 8 * 60_000, 'auto install')
+  const secsA = Math.round((Date.now() - tA) / 1000)
+  console.log(JSON.stringify(['A fresh phone, emergency screen', 'first', stateA0, firstA, 'while installing', lineA1, 'mic after (s)', secsA, 'announced', await evaluate(`document.querySelector('.voice .sr-only[role=status]')?.textContent ?? ''`), 'hosts', hostSummary(tA)]))
+  await shot('v2-voice-autoready-360.png')
 
-  // B. Opt in from Settings.
-  const tB = Date.now()
+  // B. Settings agrees with no tap, and the LEARN card is gone once it is done.
   await open('#/settings')
   await evaluate(`document.querySelector('[data-voice-settings]')?.scrollIntoView()`)
-  const stateB0 = await waitFor(`document.querySelector('[data-voice-settings]')?.dataset.voiceSettings`, 10000, 'settings state')
-  await shot('v2-voice-settings-before.png')
-  await evaluate(`[...document.querySelectorAll('button')].find(b => /^Download voice input/.test(b.textContent.trim())).click()`)
-  const stateB1 = await waitFor(`(() => { const s = document.querySelector('[data-voice-settings]')?.dataset.voiceSettings; return s === 'ready' || s === 'error' ? s : null; })()`, 8 * 60_000, 'download')
-  await sleep(1000)
+  const stateB = await waitFor(`document.querySelector('[data-voice-settings]')?.dataset.voiceSettings`, 10000, 'settings state')
   const cachesB = await caches()
   const est = await evaluate(`navigator.storage.estimate().then(e => Math.round(e.usage / 1048576) + ' MB used')`)
-  console.log(JSON.stringify(['B prepare from settings', 'before', stateB0, 'after', stateB1, 'error text', await evaluate(`document.querySelector('[data-voice-settings] [role=alert]')?.textContent ?? ''`), 'hosts', hostSummary(tB), 'storage', est]))
+  console.log(JSON.stringify(['B settings, no tap', stateB, 'storage', est]))
   console.log(JSON.stringify(['B caches', Object.fromEntries(Object.entries(cachesB).map(([k, v]) => [k, v.length + ' entries: ' + v.filter(u => /onnx|wasm|worker/.test(u)).join(' | ')]))]))
   await shot('v2-voice-settings-ready.png')
-  if (stateB1 !== 'ready') throw new Error('voice did not become ready')
+  await open('#/learn')
+  console.log(JSON.stringify(['B learn card after install', await evaluate(`!!document.querySelector('.offer')`)]))
+  if (stateB !== 'ready') throw new Error('voice did not become ready')
 
   // C. Emergency path again: speak, get the taps pre-filled, confirm.
   const speak = async (label) => {
@@ -189,6 +191,33 @@ async function main() {
   const d = await speak('offline')
   console.log(JSON.stringify(['D offline', 'state', d.state, 'heard', d.heard, 'hosts during offline speak', hostSummary(tD)]))
   await send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 })
+
+  // E. Remove: the files go, and voice does not download by itself again on this phone.
+  await open('#/settings')
+  await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Remove voice files').click()`)
+  await waitFor(`['not-ready', 'error'].includes(document.querySelector('[data-voice-settings]')?.dataset.voiceSettings)`, 15000, 'removed')
+  const tE = Date.now()
+  await open('#/now/animal')
+  await sleep(8000)
+  console.log(JSON.stringify(['E after remove + reload', 'voice', await evaluate(`document.querySelector('[data-voice]')?.dataset.voice`), 'line', await evaluate(`document.querySelector('.voice-note')?.textContent ?? ''`), 'auto', await evaluate(`localStorage.getItem('fs.voiceAuto')`), 'hosts since', hostSummary(tE), 'voice caches left', Object.keys(await caches()).filter((k) => /transformers|fs-voice/.test(k))]))
+
+  // F. Download by hand on a slow line, then Stop: the download ends and stays off.
+  await send('Network.setCacheDisabled', { cacheDisabled: true })
+  await send('Network.emulateNetworkConditions', { offline: false, latency: 50, downloadThroughput: 250_000, uploadThroughput: 250_000 })
+  await open('#/settings')
+  await evaluate(`document.querySelector('[data-voice-settings]')?.scrollIntoView()`)
+  await evaluate(`[...document.querySelectorAll('button')].find(b => /^Download voice input/.test(b.textContent.trim())).click()`)
+  await waitFor(`document.querySelector('[data-voice-settings]')?.dataset.voiceSettings === 'preparing'`, 15000, 'manual download')
+  await sleep(3000)
+  await shot('v2-voice-settings-downloading.png')
+  await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Stop download').click()`)
+  await sleep(1500)
+  const tF = Date.now()
+  await sleep(5000)
+  console.log(JSON.stringify(['F stop', 'settings', await evaluate(`document.querySelector('[data-voice-settings]')?.dataset.voiceSettings`), 'note', await evaluate(`[...document.querySelectorAll('[data-voice-settings] .small')].pop()?.textContent ?? ''`), 'auto', await evaluate(`localStorage.getItem('fs.voiceAuto')`), 'requests after stop', requests.filter((r) => r.t >= tF).map((r) => new URL(r.url).host)]))
+  await shot('v2-voice-settings-stopped.png')
+  await send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 })
+  await send('Network.setCacheDisabled', { cacheDisabled: false })
 
   console.log(`page exceptions: ${exceptions}`)
   console.log(`screenshots in ${shotDir}`)

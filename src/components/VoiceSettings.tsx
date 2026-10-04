@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import {
+  VOICE_AUTO_KEY,
   VOICE_DOWNLOAD_MB,
   VOICE_KEY,
+  getVoiceInstall,
+  installVoice,
   isVoiceReady,
-  prepareVoice,
+  onVoiceInstall,
   removeVoice,
+  stopVoiceInstall,
   voiceSupported,
-  type Progress,
   type VoiceState,
 } from '../voice'
-
-type Phase = 'checking' | 'unsupported' | 'not-ready' | 'preparing' | 'ready' | 'error'
 
 /** Best guess at "this download would use mobile data" - Android Chrome exposes it, others don't. */
 function onMobileData(): boolean {
@@ -19,72 +20,76 @@ function onMobileData(): boolean {
   return !!c && (c.type === 'cellular' || c.saveData === true)
 }
 
+const ERRORS = {
+  network: 'The download did not finish. Check the connection and try again.',
+  'not-kept': 'Downloaded, but the files were not kept for offline use. Try once more on Wi-Fi.',
+  failed: 'Voice could not be set up on this phone.',
+} as const
+
 /**
- * The only place voice files are ever downloaded: one explicit tap, size stated up front, meant
- * for a calm moment on Wi-Fi. Everything it fetches is kept on the phone for offline use.
+ * Where voice can be watched and controlled. It downloads by itself (`autoInstallVoice`); this shows
+ * that one shared download, stops it, starts it again, or removes the files. Stopping or removing
+ * also keeps it from downloading by itself again on this phone.
  */
 export default function VoiceSettings() {
-  const [phase, setPhase] = useState<Phase>('checking')
-  const [prog, setProg] = useState<Progress | null>(null)
-  const [error, setError] = useState('')
+  const [install, setInstall] = useState(getVoiceInstall)
+  const [cached, setCached] = useState<boolean | null>(null)
+  const [auto, setAuto] = useLocalStorage<boolean>(VOICE_AUTO_KEY, true)
   const [state] = useLocalStorage<VoiceState | null>(VOICE_KEY, null)
+  const supported = voiceSupported()
+
+  useEffect(() => onVoiceInstall(setInstall), [])
 
   useEffect(() => {
     let alive = true
-    if (!voiceSupported()) {
-      setPhase('unsupported')
-      return
-    }
-    isVoiceReady().then((ok) => alive && setPhase(ok ? 'ready' : 'not-ready'))
+    if (supported) isVoiceReady().then((ok) => alive && setCached(ok))
     return () => {
       alive = false
     }
-  }, [])
+  }, [supported, install.phase])
 
-  const prepare = async () => {
-    setPhase('preparing')
-    setProg(null)
-    setError('')
-    try {
-      await prepareVoice(setProg)
-      if (await isVoiceReady()) {
-        setPhase('ready')
-      } else {
-        setError('Downloaded, but the files were not kept for offline use. Try once more on Wi-Fi.')
-        setPhase('error')
-      }
-    } catch (e) {
-      setError(e instanceof Error && /network|fetch|load/i.test(e.message) ? 'The download did not finish. Check the connection and try again.' : 'Voice could not be set up on this phone.')
-      setPhase('error')
-    }
+  const download = () => {
+    setAuto(true)
+    void installVoice()
   }
 
   const remove = async () => {
-    if (!window.confirm('Remove the voice files from this phone? You can download them again later.')) return
+    if (!window.confirm('Remove the voice files from this phone? They will not download again unless you tap Download.')) return
     await removeVoice()
-    setPhase('not-ready')
+    setCached(false)
   }
 
-  if (phase === 'checking') return <p className="small">Checking…</p>
-  if (phase === 'unsupported') return <p className="body">Voice input is not available on this browser.</p>
+  if (!supported) return <p className="body">Voice input is not available on this browser.</p>
 
-  if (phase === 'preparing') {
+  if (install.phase === 'downloading') {
+    const prog = install.progress
     const pct = prog ? Math.round(prog.pct) : 0
     const file = prog?.file ? prog.file.split('/').pop() : ''
     return (
-      <div data-voice-settings="preparing" role="status" aria-live="polite">
-        <p className="body" style={{ marginBottom: 0 }}>
-          Downloading… {file ? `${file} ${pct}%` : 'starting'}
+      <div data-voice-settings="preparing">
+        <p className="body" role="status" style={{ marginBottom: 0 }}>
+          Downloading voice input…
+        </p>
+        <p className="small" style={{ marginTop: 4 }}>
+          {file ? `${file} ${pct}%` : 'Starting'}
         </p>
         <div className="prog-bar" aria-hidden="true">
           <div className="prog-fill" style={{ width: `${pct}%` }} />
         </div>
-        <p className="small">Keep the app open. This happens once.</p>
+        {onMobileData() && (
+          <p className="body" role="note">
+            <b>You seem to be on mobile data.</b> This uses about {VOICE_DOWNLOAD_MB} MB of it.
+          </p>
+        )}
+        <p className="small">Happens once, in the background. Keep the app open until it finishes.</p>
+        <button type="button" className="btn btn-ghost" onClick={stopVoiceInstall}>
+          Stop download
+        </button>
       </div>
     )
   }
 
-  if (phase === 'ready') {
+  if (install.phase === 'ready' || cached) {
     return (
       <div data-voice-settings="ready">
         <p className="body">
@@ -98,11 +103,13 @@ export default function VoiceSettings() {
     )
   }
 
+  if (cached === null) return <p className="small">Checking…</p>
+
   return (
-    <div data-voice-settings={phase}>
-      {phase === 'error' && (
+    <div data-voice-settings={install.phase === 'error' ? 'error' : 'not-ready'}>
+      {install.phase === 'error' && install.error && (
         <p className="body" role="alert">
-          {error}
+          {ERRORS[install.error]}
         </p>
       )}
       {onMobileData() && (
@@ -110,12 +117,14 @@ export default function VoiceSettings() {
           <b>You seem to be on mobile data.</b> This uses about {VOICE_DOWNLOAD_MB} MB of it. Wi-Fi is better.
         </p>
       )}
-      <button type="button" className="btn btn-solid" onClick={prepare}>
+      <button type="button" className="btn btn-solid" onClick={download}>
         Download voice input · about {VOICE_DOWNLOAD_MB} MB
       </button>
       <p className="small" style={{ marginTop: 10 }}>
-        Do this once, on Wi-Fi, before you need it. Nothing downloads during an emergency: until this is done, the
-        emergency screens simply show the buttons.
+        {auto
+          ? 'It also downloads by itself, once, whenever the app is open with internet.'
+          : 'You stopped or removed voice, so it will not download by itself on this phone.'}{' '}
+        Until it is here, the emergency screens show the buttons and a type box.
       </p>
     </div>
   )

@@ -2,7 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// First Safety - static PWA. No backend, no analytics, no external requests.
+// First Safety - static PWA. No backend for anyone's data, no analytics. The one outside host is
+// Hugging Face, for the voice model, downloaded once.
 export default defineConfig({
   plugins: [
     react(),
@@ -29,8 +30,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,woff2}'],
-        // The speech worker is never precached: it is fetched only when someone taps "Prepare voice"
-        // in Settings, and from then on the runtime cache below keeps it. The model and the ONNX
+        // The speech worker is not precached, so installing the app never waits on it: it is fetched by
+        // the background voice install, and from then on the runtime cache below keeps it. The model and the ONNX
         // runtime (.wasm/.mjs emitted next to the worker, never in the precache glob) are cached by
         // transformers.js itself.
         globIgnores: ['**/voice.worker-*.js'],

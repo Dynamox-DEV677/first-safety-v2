@@ -6,8 +6,9 @@ frame. That icon is the most persuasive frame in the video.
 **Rule two:** no narration over silence. Let it work. On-screen captions only where a jump in time
 needs explaining.
 
-Before recording: install the app to the home screen while online, open it once, and on the LEARN
-home tap *Download voice input* if you want to show voice. Then switch on aeroplane mode. Clear any
+Before recording: install the app to the home screen while online, open it once, and wait until
+Settings → Voice input says *Ready · works offline* (voice downloads by itself, about 70 MB). Then
+switch on aeroplane mode. Clear any
 old incident (open the record → *New incident*). Set the phone to light theme, brightness up.
 
 | Time | Show | What the viewer learns |

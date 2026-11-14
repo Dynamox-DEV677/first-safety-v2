@@ -49,7 +49,8 @@ export default defineConfig({
         ],
         navigateFallback: '/index.html',
         // The optional online matcher is a serverless function, never a page.
-        navigateFallbackDenylist: [/^\/api\//],
+        // privacy.html is a plain page (linked from Google Play), never the app.
+        navigateFallbackDenylist: [/^\/api\//, /^\/privacy/],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
